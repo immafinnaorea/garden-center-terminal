@@ -297,12 +297,14 @@ async function renderTrees() {
   $("treeList").innerHTML = cards.join("");
 }
 
-function renderAll() {
+async function renderAll() {
   renderSection("garden", "gardenEntries", "NO GARDEN ENTRIES YET.");
   renderSection("prompt_vault", "promptVault", "NO SAVED PROMPTS.");
   renderSection("seeds", "seedBank", "NO SEEDS SAVED YET.");
   renderSection("moonflowers", "dreamList", "NO DREAMS SAVED YET.");
-  renderTrees();
+
+  await renderTrees();
+
   renderSection("greenhouse", "greenhouseList", "GREENHOUSE IS EMPTY.");
   renderSection("chimes", "songList", "NO WIND CHIMES YET.");
   renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
