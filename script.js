@@ -249,8 +249,11 @@ function renderSection(section, target, empty) {
 }
 
 function renderPublicMockFeed() {
+  const feed = $("publicMockFeed");
+  if (!feed) return;
+
   const shared = allItems.filter(i => i.is_shared);
-  $("publicMockFeed").innerHTML = shared.length
+  feed.innerHTML = shared.length
     ? shared.map(item => `<div class="item"><strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p>${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}</div>`).join("")
     : "<p class='muted'>No public/shared items yet. Check share on a Seed, Tree, Moonflower, or Entry.</p>";
 }
