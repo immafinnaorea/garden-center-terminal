@@ -4,6 +4,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
 let currentUser = null;
+let currentProfile = null;
 let allItems = [];
 let selectedMood = "";
 let currentPrompt = "";
@@ -96,6 +97,7 @@ async function login() {
 async function logout() {
   await supabaseClient.auth.signOut();
   currentUser = null;
+  currentProfile = null;
   allItems = [];
   $("authScreen").classList.remove("hidden");
   $("appScreen").classList.add("hidden");
@@ -111,10 +113,68 @@ async function loadSession() {
     return;
   }
 
-  $("userEmail").textContent = currentUser.email;
   $("authScreen").classList.add("hidden");
   $("appScreen").classList.remove("hidden");
+  await loadProfile();
   await loadCloudItems();
+}
+
+
+async function loadProfile() {
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, username, display_name")
+    .eq("id", currentUser.id)
+    .single();
+
+  if (error) {
+    console.warn("Profile load error:", error.message);
+    currentProfile = {
+      username: currentUser.email.split("@")[0],
+      display_name: currentUser.email.split("@")[0]
+    };
+  } else {
+    currentProfile = data;
+  }
+
+  const username = currentProfile?.username || currentUser.email.split("@")[0];
+  const displayName = currentProfile?.display_name || username;
+
+  $("userHandle").textContent = "@" + username;
+  $("profileUsername").value = username;
+  $("profileDisplayName").value = displayName;
+}
+
+async function saveProfile() {
+  const username = $("profileUsername").value.trim().replace(/^@/, "").toLowerCase();
+  const displayName = $("profileDisplayName").value.trim() || username;
+
+  if (!username) {
+    $("profileMessage").textContent = "Username is required.";
+    return;
+  }
+
+  if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+    $("profileMessage").textContent = "Use 3–24 lowercase letters, numbers, or underscores.";
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ username, display_name: displayName })
+    .eq("id", currentUser.id);
+
+  if (error) {
+    if (error.message.includes("duplicate") || error.message.includes("unique")) {
+      $("profileMessage").textContent = "That username is already taken.";
+    } else {
+      $("profileMessage").textContent = "Profile save error: " + error.message;
+    }
+    return;
+  }
+
+  $("profileMessage").textContent = "Profile saved. Your garden now shows @" + username + ".";
+  await loadProfile();
 }
 
 async function loadCloudItems() {
@@ -190,7 +250,7 @@ function renderSection(section, target, empty) {
 function renderPublicMockFeed() {
   const shared = allItems.filter(i => i.is_shared);
   $("publicMockFeed").innerHTML = shared.length
-    ? shared.map(item => `<div class="item"><strong>@you shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p>${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}</div>`).join("")
+    ? shared.map(item => `<div class="item"><strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p>${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}</div>`).join("")
     : "<p class='muted'>No public/shared items yet. Check share on a Seed, Tree, Moonflower, or Entry.</p>";
 }
 
@@ -228,6 +288,7 @@ function usePrompt(prompt, category) {
 $("signupBtn").addEventListener("click", signUp);
 $("loginBtn").addEventListener("click", login);
 $("logoutBtn").addEventListener("click", logout);
+$("saveProfileBtn").addEventListener("click", saveProfile);
 
 $("saveGardenEntry").onclick = () => {
   const body = $("gardenEntry").value.trim();

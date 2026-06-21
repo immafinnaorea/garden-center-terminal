@@ -38,7 +38,7 @@
         <span class="subtitle">cloud synced // private garden // v0.3</span>
       </div>
       <div class="user-box">
-        <span id="userEmail"></span>
+        <span id="userHandle"></span>
         <span id="activeStatus" class="status-pill">🌱 idle</span>
         <button id="logoutBtn">LOGOUT</button>
       </div>
@@ -227,6 +227,21 @@
 
         <section id="settings" class="section">
           <div class="section-header"><h1>⚙ SETTINGS</h1><p>Make it yours.</p></div>
+
+          <div class="panel">
+            <h2>PROFILE</h2>
+            <p class="muted">This is what friends will see in the Community Garden.</p>
+
+            <label>Username</label>
+            <input id="profileUsername" placeholder="halseyfan69" />
+
+            <label>Display Name</label>
+            <input id="profileDisplayName" placeholder="Halsey" />
+
+            <button id="saveProfileBtn" class="primary">SAVE PROFILE</button>
+            <p id="profileMessage" class="muted"></p>
+          </div>
+
           <div class="panel">
             <h2>THEME COLOR</h2>
             <label>Primary color</label>
