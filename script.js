@@ -117,6 +117,7 @@ async function loadSession() {
   $("appScreen").classList.remove("hidden");
   await loadProfile();
   await loadCloudItems();
+  await loadFriends();
 }
 
 
@@ -289,6 +290,7 @@ $("signupBtn").addEventListener("click", signUp);
 $("loginBtn").addEventListener("click", login);
 $("logoutBtn").addEventListener("click", logout);
 $("saveProfileBtn").addEventListener("click", saveProfile);
+$("searchFriendBtn").addEventListener("click", searchFriend);
 
 $("saveGardenEntry").onclick = () => {
   const body = $("gardenEntry").value.trim();
@@ -313,6 +315,175 @@ $("saveTree").onclick = () => { const body = $("treeMemory").value.trim(); const
 $("saveGreenhouse").onclick = () => { const body = $("greenText").value.trim(); if (!body) return alert("Write something first."); addCloudItem({ section: "greenhouse", title: $("greenTitle").value.trim() || "GREENHOUSE PIECE", body, is_shared: $("shareGreenhouse").checked }); $("greenTitle").value = ""; $("greenText").value = ""; $("shareGreenhouse").checked = false; };
 $("saveSong").onclick = () => { const title = $("songTitle").value.trim(); if (!title) return alert("Add a song title first."); addCloudItem({ section: "chimes", title, body: $("songArtist").value.trim() + "\n" + $("songVibe").value.trim(), is_shared: $("shareSong").checked }); $("songTitle").value = ""; $("songArtist").value = ""; $("songVibe").value = ""; $("shareSong").checked = false; };
 $("saveProject").onclick = () => { const body = $("projectText").value.trim(); const title = $("projectTitle").value.trim() || "PROJECT TREE"; if (!body && !title) return alert("Plant something first."); addCloudItem({ section: "orchard", title, body, is_shared: $("shareProject").checked }); $("projectTitle").value = ""; $("projectText").value = ""; $("shareProject").checked = false; };
+
+
+async function searchFriend() {
+  const term = $("friendSearchInput").value.trim().replace(/^@/, "").toLowerCase();
+  if (!term) {
+    $("friendSearchResults").innerHTML = "<p class='muted'>Type a username first.</p>";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, username, display_name")
+    .ilike("username", `%${term}%`)
+    .neq("id", currentUser.id)
+    .limit(10);
+
+  if (error) {
+    $("friendSearchResults").innerHTML = `<p class='muted'>Search error: ${esc(error.message)}</p>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    $("friendSearchResults").innerHTML = "<p class='muted'>No gardeners found.</p>";
+    return;
+  }
+
+  $("friendSearchResults").innerHTML = data.map(p => `
+    <div class="search-result">
+      <strong>@${esc(p.username)}</strong>
+      <p class="muted">${esc(p.display_name || p.username)}</p>
+      <button class="secondary" onclick="sendFriendRequest('${p.id}')">🌱 PLANT FRIENDSHIP</button>
+      <button class="secondary" onclick="visitGarden('${p.id}', '${esc(p.username)}')">VISIT PUBLIC GARDEN</button>
+    </div>
+  `).join("");
+}
+
+async function sendFriendRequest(receiverId) {
+  const { error } = await supabaseClient
+    .from("friends")
+    .insert({ sender_id: currentUser.id, receiver_id: receiverId, status: "pending" });
+
+  if (error) {
+    if (error.message.includes("duplicate") || error.message.includes("unique")) {
+      alert("Friendship already planted or pending.");
+    } else {
+      alert("Friend request error: " + error.message);
+    }
+    return;
+  }
+
+  alert("Friendship seed planted.");
+  await loadFriends();
+}
+
+async function loadFriends() {
+  if (!currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from("friends")
+    .select("*")
+    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Friend load error:", error.message);
+    return;
+  }
+
+  const rows = data || [];
+  const ids = [...new Set(rows.flatMap(r => [r.sender_id, r.receiver_id]).filter(id => id !== currentUser.id))];
+
+  let profiles = [];
+  if (ids.length) {
+    const res = await supabaseClient
+      .from("profiles")
+      .select("id, username, display_name")
+      .in("id", ids);
+    profiles = res.data || [];
+  }
+
+  const profileById = Object.fromEntries(profiles.map(p => [p.id, p]));
+  const pendingIncoming = rows.filter(r => r.status === "pending" && r.receiver_id === currentUser.id);
+  const accepted = rows.filter(r => r.status === "accepted");
+
+  $("friendRequestsList").innerHTML = pendingIncoming.length
+    ? pendingIncoming.map(r => {
+        const p = profileById[r.sender_id];
+        return `<div class="request-card">
+          <strong>@${esc(p?.username || "unknown")}</strong>
+          <p class="muted">wants to plant a friendship.</p>
+          <button class="primary" onclick="respondFriendRequest('${r.id}', 'accepted')">ACCEPT</button>
+          <button class="secondary" onclick="deleteFriendship('${r.id}')">DECLINE</button>
+        </div>`;
+      }).join("")
+    : "<p class='muted'>No pending friendship requests.</p>";
+
+  $("realFriendsList").innerHTML = accepted.length
+    ? accepted.map(r => {
+        const friendId = r.sender_id === currentUser.id ? r.receiver_id : r.sender_id;
+        const p = profileById[friendId];
+        return `<div class="friend-row">
+          <strong>@${esc(p?.username || "unknown")}</strong>
+          <button class="secondary" onclick="visitGarden('${friendId}', '${esc(p?.username || "unknown")}')">VISIT GARDEN</button>
+          <button class="secondary" onclick="deleteFriendship('${r.id}')">REMOVE</button>
+        </div>`;
+      }).join("")
+    : "<p class='muted'>No accepted friends yet.</p>";
+
+  $("sidebarFriendsList").innerHTML = accepted.length
+    ? accepted.map(r => {
+        const friendId = r.sender_id === currentUser.id ? r.receiver_id : r.sender_id;
+        const p = profileById[friendId];
+        return `<p>🌱 @${esc(p?.username || "unknown")}</p>`;
+      }).join("")
+    : "<p class='muted'>No friends yet.</p>";
+}
+
+async function respondFriendRequest(friendshipId, status) {
+  const { error } = await supabaseClient
+    .from("friends")
+    .update({ status })
+    .eq("id", friendshipId);
+
+  if (error) {
+    alert("Request update error: " + error.message);
+    return;
+  }
+  await loadFriends();
+}
+
+async function deleteFriendship(friendshipId) {
+  const { error } = await supabaseClient
+    .from("friends")
+    .delete()
+    .eq("id", friendshipId);
+
+  if (error) {
+    alert("Friendship delete error: " + error.message);
+    return;
+  }
+  await loadFriends();
+}
+
+async function visitGarden(friendId, username) {
+  $("visitedGardenTitle").textContent = `IN @${username}'S GARDEN`;
+  $("visitedGardenItems").innerHTML = "<p class='muted'>Loading shared garden...</p>";
+  openSection("community");
+
+  const { data, error } = await supabaseClient
+    .from("garden_items")
+    .select("*")
+    .eq("user_id", friendId)
+    .eq("is_shared", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    $("visitedGardenItems").innerHTML = `<p class='muted'>Garden load error: ${esc(error.message)}</p>`;
+    return;
+  }
+
+  $("visitedGardenItems").innerHTML = data && data.length
+    ? data.map(item => `<div class="visited-item">
+        <strong>${esc(item.title || item.mood || item.section)}</strong>
+        <p class="muted">${esc(item.section)} // ${new Date(item.created_at).toLocaleString()}</p>
+        ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
+        ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+      </div>`).join("")
+    : `<p class='muted'>@${esc(username)} has not shared anything publicly yet.</p>`;
+}
 
 $("applyTheme").onclick = () => {
   const color = $("hexColor").value.trim() || $("themeColor").value;

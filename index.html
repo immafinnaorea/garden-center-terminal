@@ -208,20 +208,33 @@
         </section>
 
         <section id="community" class="section">
-          <div class="section-header"><h1>👥 COMMUNITY GARDEN</h1><p>Prototype social space. Public/shared items only.</p></div>
-          <div class="panel">
-            <h2>IN @USERNAME'S GARDEN</h2>
-            <p class="muted">Future feature: click a username to visit their public garden.</p>
-            <div class="garden-visit-card">
-              <h3>@friend</h3>
-              <p>Currently watering:</p>
-              <p><em>“Describe a garden that remembers everyone who cared for it.”</em></p>
-              <p class="status-pill">🌱 planting...</p>
-            </div>
+          <div class="section-header">
+            <h1>👥 COMMUNITY GARDEN</h1>
+            <p>Find friends, plant friendship requests, and visit public gardens.</p>
           </div>
+
           <div class="panel">
-            <h2>PUBLIC GARDEN MOCK FEED</h2>
-            <div id="publicMockFeed"></div>
+            <h2>SEARCH GARDENERS</h2>
+            <label>Username</label>
+            <input id="friendSearchInput" placeholder="sav333" />
+            <button id="searchFriendBtn" class="primary">SEARCH</button>
+            <div id="friendSearchResults"></div>
+          </div>
+
+          <div class="panel">
+            <h2>FRIENDSHIP REQUESTS</h2>
+            <div id="friendRequestsList"></div>
+          </div>
+
+          <div class="panel">
+            <h2>MY FRIENDS</h2>
+            <div id="realFriendsList"></div>
+          </div>
+
+          <div class="panel">
+            <h2 id="visitedGardenTitle">IN @USERNAME'S GARDEN</h2>
+            <p class="muted">Only shared/public items appear here.</p>
+            <div id="visitedGardenItems"></div>
           </div>
         </section>
 
@@ -260,10 +273,10 @@
         <p class="muted">Friend/social prototype. No comments yet.</p>
 
         <div class="friend-card">
-          <strong>FRIENDS ONLINE</strong>
-          <p>🌱 @friend is planting...</p>
-          <p>💧 @writer is watering a prompt</p>
-          <p>🌙 @dreamer is in Moonflowers</p>
+          <strong>FRIENDS</strong>
+          <div id="sidebarFriendsList">
+            <p class="muted">No friends loaded yet.</p>
+          </div>
         </div>
 
         <div class="friend-card">

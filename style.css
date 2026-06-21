@@ -20,3 +20,7 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
 .item{border-top:1px dotted var(--line);padding:12px 0}.item:first-child{border-top:none}.item button{background:transparent;color:var(--text);border:1px solid var(--line);margin-right:8px;margin-top:8px;cursor:pointer}.shared-badge{border:1px solid var(--line);padding:2px 6px;margin-left:6px;font-size:.8rem}
 @media(max-width:1100px){.main-layout{grid-template-columns:1fr}.sidebar,.friends-panel{border-right:none;border-left:none;border-bottom:2px solid var(--line)}nav{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}}
 @media(max-width:650px){body{padding:0}.terminal-shell{border-left:none;border-right:none;min-height:100vh}.workspace,.sidebar,.friends-panel{padding:12px}.section-header h1{font-size:1.35rem}.titlebar,.statusbar{align-items:flex-start;flex-direction:column}textarea{min-height:240px}.mood-grid{grid-template-columns:repeat(2,1fr)}}
+
+.search-result,.request-card,.friend-row,.visited-item{border-top:1px dotted var(--line);padding:12px 0}
+.search-result:first-child,.request-card:first-child,.friend-row:first-child,.visited-item:first-child{border-top:none}
+.friend-row button,.request-card button,.search-result button{margin-left:8px}
