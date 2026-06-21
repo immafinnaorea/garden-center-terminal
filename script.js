@@ -262,21 +262,39 @@ function renderPublicMockFeed() {
 }
 
 
-function renderTrees() {
+async function renderTrees() {
   const items = allItems.filter(i => i.section === "trees");
-  $("treeList").innerHTML = items.length
-    ? items.map(item => `<div class="tree-card">
-        <strong>${esc(item.title || "MEMORY TREE")}</strong>
-        ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
-        <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-        ${item.image_url ? `<img src="${item.image_url}" alt="Uploaded memory image">` : ""}
-        ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
-        ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-        ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-        <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
-        <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
-      </div>`).join("")
-    : "<p class='muted'>NO MEMORY TREES PLANTED YET.</p>";
+
+  if (!items.length) {
+    $("treeList").innerHTML = "<p class='muted'>NO MEMORY TREES PLANTED YET.</p>";
+    return;
+  }
+
+  const cards = await Promise.all(items.map(async item => {
+    let imageUrl = null;
+
+    if (item.image_url) {
+      const { data, error } = await supabaseClient.storage
+        .from("tree-photos")
+        .createSignedUrl(item.image_url, 60 * 60);
+
+      if (!error) imageUrl = data.signedUrl;
+    }
+
+    return `<div class="tree-card">
+      <strong>${esc(item.title || "MEMORY TREE")}</strong>
+      ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
+      <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
+      ${imageUrl ? `<img src="${imageUrl}" alt="Uploaded memory image">` : ""}
+      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+      ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+      ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+      <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
+      <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
+    </div>`;
+  }));
+
+  $("treeList").innerHTML = cards.join("");
 }
 
 function renderAll() {
