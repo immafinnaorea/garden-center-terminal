@@ -353,11 +353,7 @@ async function uploadTreePhoto(file) {
     throw uploadError;
   }
 
-  const { data } = supabaseClient.storage
-    .from("tree-photos")
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
+  return filePath;
 }
 
 $("saveTree").onclick = async () => {
