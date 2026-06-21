@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Garden Terminal</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-box">
+      <h1>THE GARDEN TERMINAL</h1>
+      <p class="muted">cloud root access // private by default</p>
+
+      <label>Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" />
+
+      <label>Password</label>
+      <input id="authPassword" type="password" placeholder="password" />
+
+      <label>Username</label>
+      <input id="authUsername" placeholder="needed for new account" />
+
+      <div class="button-row">
+        <button id="loginBtn" class="primary">LOGIN</button>
+        <button id="signupBtn" class="secondary">CREATE ACCOUNT</button>
+      </div>
+
+      <p id="authMessage" class="muted"></p>
+    </div>
+  </div>
+
+  <div id="appScreen" class="terminal-shell hidden">
+    <header class="titlebar">
+      <div>
+        <span class="title">THE GARDEN TERMINAL</span>
+        <span class="subtitle">cloud synced // private garden // v0.3</span>
+      </div>
+      <div class="user-box">
+        <span id="userEmail"></span>
+        <span id="activeStatus" class="status-pill">🌱 idle</span>
+        <button id="logoutBtn">LOGOUT</button>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <aside class="sidebar">
+        <div class="system-block">
+          <p>STATUS: CLOUD ROOTED</p>
+          <p id="clock">--:--</p>
+        </div>
+
+        <nav>
+          <button class="nav active" data-section="garden">🌿 THE GARDEN</button>
+          <button class="nav" data-section="watering">💧 WATERING CAN</button>
+          <button class="nav" data-section="seeds">🌱 THE SEEDS</button>
+          <button class="nav" data-section="moonflowers">🌙 MOONFLOWERS</button>
+          <button class="nav" data-section="trees">🌳 THE TREES</button>
+          <button class="nav" data-section="greenhouse">📖 GREENHOUSE</button>
+          <button class="nav" data-section="chimes">🎵 WIND CHIMES</button>
+          <button class="nav" data-section="orchard">🍎 ORCHARD</button>
+          <button class="nav" data-section="community">👥 COMMUNITY</button>
+          <button class="nav" data-section="settings">⚙ SETTINGS</button>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <section id="garden" class="section active-section">
+          <div class="section-header">
+            <h1>🌿 THE GARDEN</h1>
+            <p>Daily entries. Private by default. Share only what you choose.</p>
+          </div>
+
+          <div class="panel">
+            <h2>NEW ENTRY</h2>
+
+            <label>Mood Meter</label>
+            <div class="mood-grid" id="moodGrid">
+              <button class="mood-btn" data-mood="Amazing">🤩<span>Amazing</span></button>
+              <button class="mood-btn" data-mood="Good">🙂<span>Good</span></button>
+              <button class="mood-btn" data-mood="Calm">😌<span>Calm</span></button>
+              <button class="mood-btn" data-mood="Focused">🎯<span>Focused</span></button>
+              <button class="mood-btn" data-mood="Grateful">🙏<span>Grateful</span></button>
+              <button class="mood-btn" data-mood="Inspired">💡<span>Inspired</span></button>
+              <button class="mood-btn" data-mood="Tired">😴<span>Tired</span></button>
+              <button class="mood-btn" data-mood="Stressed">😖<span>Stressed</span></button>
+              <button class="mood-btn" data-mood="Overwhelmed">🤯<span>Overwhelmed</span></button>
+              <button class="mood-btn" data-mood="Sad">😢<span>Sad</span></button>
+              <button class="mood-btn" data-mood="Anxious">😟<span>Anxious</span></button>
+              <button class="mood-btn" data-mood="Angry">😡<span>Angry</span></button>
+              <button class="mood-btn" data-mood="Drunk">🍺<span>Drunk</span></button>
+              <button class="mood-btn" data-mood="I need a Zyn">⚪<span>I need a Zyn</span></button>
+              <button class="mood-btn" data-mood="Chill as fuck">😎<span>Chill as fuck</span></button>
+              <button class="mood-btn" data-mood="Unbothered">👑<span>Unbothered</span></button>
+            </div>
+
+            <p class="selected-line">Selected Mood: <span id="selectedMoodText">None</span></p>
+
+            <label>Entry</label>
+            <textarea id="gardenEntry" placeholder="What grew today?"></textarea>
+
+            <label>One thing that helped</label>
+            <input id="gardenHelped" placeholder="A small source of water..." />
+
+            <label class="share-row">
+              <input id="shareGardenEntry" type="checkbox" />
+              Share this entry to your public garden
+            </label>
+
+            <button id="saveGardenEntry" class="primary">PLANT ENTRY</button>
+          </div>
+
+          <div class="panel"><h2>RECENT GROWTH</h2><div id="gardenEntries"></div></div>
+        </section>
+
+        <section id="watering" class="section">
+          <div class="section-header"><h1>💧 WATERING CAN</h1><p>Prompts to water whatever needs attention. Current prompt can appear in the social sidebar.</p></div>
+          <div class="panel">
+            <h2>PROMPT GENERATOR</h2>
+            <label>Prompt type</label>
+            <select id="promptType">
+              <option value="all">All prompts</option><option value="gentle">Gentle / Stability</option><option value="creative">Creative Writing</option><option value="memory">Memory</option><option value="future">Future Growth</option><option value="dream">Dreamlike</option>
+            </select>
+            <p id="promptLabel" class="tag">ALL PROMPTS</p>
+            <p id="promptText" class="large-text">Click water prompt.</p>
+            <div class="button-row">
+              <button id="newPrompt" class="primary">WATER PROMPT</button>
+              <button id="savePrompt" class="secondary">SAVE TO VAULT</button>
+              <button id="sendPromptToGarden" class="secondary">WRITE IN GARDEN</button>
+            </div>
+          </div>
+          <div class="panel"><h2>PROMPT VAULT</h2><div id="promptVault"></div></div>
+        </section>
+
+        <section id="seeds" class="section">
+          <div class="section-header"><h1>🌱 THE SEEDS</h1><p>Scratchpad notes. Seeds are good candidates for optional sharing.</p></div>
+          <div class="panel">
+            <h2>QUICK NOTE</h2>
+            <textarea id="seedText" placeholder="Drop a seed here..."></textarea>
+            <label class="share-row"><input id="shareSeed" type="checkbox" /> Share this seed publicly</label>
+            <button id="saveSeed" class="primary">SAVE SEED</button>
+          </div>
+          <div class="panel"><h2>SEED BANK</h2><div id="seedBank"></div></div>
+        </section>
+
+        <section id="moonflowers" class="section">
+          <div class="section-header"><h1>🌙 MOONFLOWERS</h1><p>Dreams. Things that bloom at night.</p></div>
+          <div class="panel">
+            <h2>DREAM LOG</h2>
+            <input id="dreamTitle" placeholder="Dream title..." />
+            <textarea id="dreamText" placeholder="Write the dream before it fades..."></textarea>
+            <label class="share-row"><input id="shareDream" type="checkbox" /> Share this moonflower publicly</label>
+            <button id="saveDream" class="primary">SAVE DREAM</button>
+          </div>
+          <div class="panel"><h2>RECENT DREAMS</h2><div id="dreamList"></div></div>
+        </section>
+
+        <section id="trees" class="section">
+          <div class="section-header"><h1>🌳 THE TREES</h1><p>Memories that have taken root. Photo upload comes next.</p></div>
+          <div class="panel">
+            <h2>PLANT A MEMORY TREE</h2>
+            <input id="treeTitle" placeholder="Memory name..." />
+            <textarea id="treeMemory" placeholder="What does this memory hold?"></textarea>
+            <input id="treeSong" placeholder="Song attached to this memory..." />
+            <input id="treePeople" placeholder="People connected to it..." />
+            <label class="share-row"><input id="shareTree" type="checkbox" /> Share this tree publicly</label>
+            <button id="saveTree" class="primary">SAVE TREE</button>
+          </div>
+          <div class="panel"><h2>MEMORY GROVE</h2><div id="treeList"></div></div>
+        </section>
+
+        <section id="greenhouse" class="section">
+          <div class="section-header"><h1>📖 GREENHOUSE</h1><p>Protected creative writing space.</p></div>
+          <div class="panel">
+            <h2>NEW CREATIVE PIECE</h2>
+            <input id="greenTitle" placeholder="Title..." />
+            <textarea id="greenText" placeholder="Story, poem, scene, character note..."></textarea>
+            <label class="share-row"><input id="shareGreenhouse" type="checkbox" /> Share this greenhouse piece publicly</label>
+            <button id="saveGreenhouse" class="primary">STORE IN GREENHOUSE</button>
+          </div>
+          <div class="panel"><h2>GREENHOUSE SHELVES</h2><div id="greenhouseList"></div></div>
+        </section>
+
+        <section id="chimes" class="section">
+          <div class="section-header"><h1>🎵 WIND CHIMES</h1><p>Songs attached to moods, memories, and prompts.</p></div>
+          <div class="panel">
+            <h2>ADD SONG</h2>
+            <input id="songTitle" placeholder="Song title..." />
+            <input id="songArtist" placeholder="Artist..." />
+            <input id="songVibe" placeholder="Vibe / memory / prompt..." />
+            <label class="share-row"><input id="shareSong" type="checkbox" /> Share this chime publicly</label>
+            <button id="saveSong" class="primary">HANG CHIME</button>
+          </div>
+          <div class="panel"><h2>CHIMES</h2><div id="songList"></div></div>
+        </section>
+
+        <section id="orchard" class="section">
+          <div class="section-header"><h1>🍎 ORCHARD</h1><p>Long-term projects. Trees that may bear fruit later.</p></div>
+          <div class="panel">
+            <h2>NEW PROJECT TREE</h2>
+            <input id="projectTitle" placeholder="Project name..." />
+            <textarea id="projectText" placeholder="What is this project becoming?"></textarea>
+            <label class="share-row"><input id="shareProject" type="checkbox" /> Share this project publicly</label>
+            <button id="saveProject" class="primary">PLANT PROJECT</button>
+          </div>
+          <div class="panel"><h2>ORCHARD ROWS</h2><div id="projectList"></div></div>
+        </section>
+
+        <section id="community" class="section">
+          <div class="section-header"><h1>👥 COMMUNITY GARDEN</h1><p>Prototype social space. Public/shared items only.</p></div>
+          <div class="panel">
+            <h2>IN @USERNAME'S GARDEN</h2>
+            <p class="muted">Future feature: click a username to visit their public garden.</p>
+            <div class="garden-visit-card">
+              <h3>@friend</h3>
+              <p>Currently watering:</p>
+              <p><em>“Describe a garden that remembers everyone who cared for it.”</em></p>
+              <p class="status-pill">🌱 planting...</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>PUBLIC GARDEN MOCK FEED</h2>
+            <div id="publicMockFeed"></div>
+          </div>
+        </section>
+
+        <section id="settings" class="section">
+          <div class="section-header"><h1>⚙ SETTINGS</h1><p>Make it yours.</p></div>
+          <div class="panel">
+            <h2>THEME COLOR</h2>
+            <label>Primary color</label>
+            <input id="themeColor" type="color" value="#7cff7c" />
+            <label>Custom HEX</label>
+            <input id="hexColor" value="#7cff7c" />
+            <button id="applyTheme" class="primary">APPLY COLOR</button>
+            <button id="resetTheme" class="secondary">RESET GREEN</button>
+          </div>
+        </section>
+      </main>
+
+      <aside class="friends-panel">
+        <h2>COMMUNITY GARDEN</h2>
+        <p class="scanline"></p>
+        <p class="muted">Friend/social prototype. No comments yet.</p>
+
+        <div class="friend-card">
+          <strong>FRIENDS ONLINE</strong>
+          <p>🌱 @friend is planting...</p>
+          <p>💧 @writer is watering a prompt</p>
+          <p>🌙 @dreamer is in Moonflowers</p>
+        </div>
+
+        <div class="friend-card">
+          <strong>CURRENTLY WATERING</strong>
+          <p id="sidebarPrompt">No active prompt yet.</p>
+        </div>
+
+        <div class="friend-card">
+          <strong>GARDEN NOTES</strong>
+          <p class="muted">Future DM / message area. No comments, just private notes.</p>
+          <button class="secondary" disabled>LEAVE NOTE SOON</button>
+        </div>
+
+        <div class="friend-card">
+          <strong>PRIVACY</strong>
+          <p>Everything is private unless you check share.</p>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.3 social garden</span></footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
