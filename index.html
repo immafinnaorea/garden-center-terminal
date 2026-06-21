@@ -35,7 +35,7 @@
     <header class="titlebar">
       <div>
         <span class="title">THE GARDEN TERMINAL</span>
-        <span class="subtitle">cloud synced // private garden // v0.3</span>
+        <span class="subtitle">cloud synced // private garden // v0.6</span>
       </div>
       <div class="user-box">
         <span id="userHandle"></span>
@@ -157,17 +157,39 @@
         </section>
 
         <section id="trees" class="section">
-          <div class="section-header"><h1>🌳 THE TREES</h1><p>Memories that have taken root. Photo upload comes next.</p></div>
+          <div class="section-header">
+            <h1>🌳 THE TREES</h1>
+            <p>Memories that have taken root. Photos, songs, people, and stories.</p>
+          </div>
+
           <div class="panel">
             <h2>PLANT A MEMORY TREE</h2>
-            <input id="treeTitle" placeholder="Memory name..." />
+
+            <label>Memory Name</label>
+            <input id="treeTitle" placeholder="First apartment, Eleanor sleeping, Moving day..." />
+
+            <label>Memory</label>
             <textarea id="treeMemory" placeholder="What does this memory hold?"></textarea>
-            <input id="treeSong" placeholder="Song attached to this memory..." />
-            <input id="treePeople" placeholder="People connected to it..." />
+
+            <label>Photo</label>
+            <input id="treePhoto" type="file" accept="image/*" />
+
+            <label>Song attached to this memory</label>
+            <input id="treeSong" placeholder="Song title / artist..." />
+
+            <label>People connected to it</label>
+            <input id="treePeople" placeholder="People, cats, places..." />
+
             <label class="share-row"><input id="shareTree" type="checkbox" /> Share this tree publicly</label>
-            <button id="saveTree" class="primary">SAVE TREE</button>
+
+            <button id="saveTree" class="primary">PLANT TREE</button>
+            <p id="treeUploadStatus" class="muted"></p>
           </div>
-          <div class="panel"><h2>MEMORY GROVE</h2><div id="treeList"></div></div>
+
+          <div class="panel">
+            <h2>MEMORY GROVE</h2>
+            <div id="treeList" class="tree-grid"></div>
+          </div>
         </section>
 
         <section id="greenhouse" class="section">
@@ -210,7 +232,7 @@
         <section id="community" class="section">
           <div class="section-header">
             <h1>👥 COMMUNITY GARDEN</h1>
-            <p>Find friends, plant friendship requests, and visit public gardens.</p>
+            <p>Find gardeners, plant friendships, and walk through public gardens.</p>
           </div>
 
           <div class="panel">
@@ -228,12 +250,23 @@
 
           <div class="panel">
             <h2>MY FRIENDS</h2>
+            <p class="muted">Click a friend to visit their shared garden.</p>
             <div id="realFriendsList"></div>
           </div>
 
           <div class="panel">
             <h2 id="visitedGardenTitle">IN @USERNAME'S GARDEN</h2>
-            <p class="muted">Only shared/public items appear here.</p>
+            <p id="visitedGardenSubtitle" class="muted">Select a friend to walk through their public garden.</p>
+
+            <div class="button-row garden-filter-row">
+              <button class="secondary garden-filter active-filter" data-filter="all">ALL</button>
+              <button class="secondary garden-filter" data-filter="garden">ENTRIES</button>
+              <button class="secondary garden-filter" data-filter="trees">TREES</button>
+              <button class="secondary garden-filter" data-filter="moonflowers">MOONFLOWERS</button>
+              <button class="secondary garden-filter" data-filter="chimes">CHIMES</button>
+              <button class="secondary garden-filter" data-filter="orchard">ORCHARD</button>
+            </div>
+
             <div id="visitedGardenItems"></div>
           </div>
         </section>
@@ -297,7 +330,7 @@
       </aside>
     </div>
 
-    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.3 social garden</span></footer>
+    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.6 social garden</span></footer>
   </div>
 
   <script src="script.js"></script>

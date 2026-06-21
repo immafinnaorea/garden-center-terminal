@@ -24,3 +24,18 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
 .search-result,.request-card,.friend-row,.visited-item{border-top:1px dotted var(--line);padding:12px 0}
 .search-result:first-child,.request-card:first-child,.friend-row:first-child,.visited-item:first-child{border-top:none}
 .friend-row button,.request-card button,.search-result button{margin-left:8px}
+
+.tree-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.tree-card{border:2px solid var(--line);background:#000;padding:12px}
+.tree-card img,.visited-item img{width:100%;max-height:260px;object-fit:cover;border:1px solid var(--line);margin:8px 0 12px}
+.visited-item img{max-width:360px;display:block}
+
+.garden-filter-row{margin:12px 0 16px}
+.garden-filter.active-filter{background:var(--line);color:#001100}
+.garden-summary{border:1px dashed var(--line);padding:10px;margin:10px 0 14px;color:var(--muted)}
+.friend-row strong{cursor:pointer}
+.friend-row strong:hover{text-decoration:underline}
+.visited-item{border:2px solid var(--line);padding:14px;margin:12px 0;background:rgba(0,0,0,.65)}
+.visited-item img{width:100%;max-width:420px;max-height:300px;object-fit:cover;border:1px solid var(--line);display:block;margin:10px 0}
+.sidebar-friend-button{background:transparent;border:none;color:var(--text);font-family:inherit;cursor:pointer;text-align:left;padding:0}
+.sidebar-friend-button:hover{text-decoration:underline}
