@@ -262,6 +262,22 @@ function renderPublicMockFeed() {
 }
 
 
+async function getTreeImageUrl(path) {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+
+  const { data, error } = await supabaseClient.storage
+    .from("tree-photos")
+    .createSignedUrl(path, 60 * 60);
+
+  if (error) {
+    console.warn("Signed URL error:", error.message);
+    return null;
+  }
+
+  return data.signedUrl;
+}
+
 async function renderTrees() {
   const items = allItems.filter(i => i.section === "trees");
 
@@ -277,7 +293,8 @@ async function renderTrees() {
       <strong>${esc(item.title || "MEMORY TREE")}</strong>
       ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
       <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-${imageUrl ? `<img class="tree-memory-photo" src="${imageUrl}" alt="Uploaded memory image" onclick="openMemoryViewer('${item.id}')">` : ""}      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+      ${imageUrl ? `<img class="tree-memory-photo" src="${imageUrl}" alt="Uploaded memory image" onclick="openMemoryViewer('${item.id}')">` : ""}
+      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
       ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
       ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
       <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
@@ -314,14 +331,6 @@ function closeMemoryViewer() {
   $("memoryViewer").classList.add("hidden");
 }
 
-
-
-async function renderAll() {                    
-    return `<div class="tree-card">
-      <strong>${esc(item.title || "MEMORY TREE")}</strong>
-
-}
-
 async function renderAll() {
   renderSection("garden", "gardenEntries", "NO GARDEN ENTRIES YET.");
   renderSection("prompt_vault", "promptVault", "NO SAVED PROMPTS.");
@@ -335,8 +344,6 @@ async function renderAll() {
   renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
   renderPublicMockFeed();
 }
-
-function newPrompt() {
   const c = promptBank[$("promptType").value];
   $("promptLabel").textContent = c.label;
   $("promptText").textContent = c.items[Math.floor(Math.random() * c.items.length)];
