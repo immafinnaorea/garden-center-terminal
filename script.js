@@ -271,16 +271,51 @@ async function renderTrees() {
   }
 
   const cards = await Promise.all(items.map(async item => {
-    let imageUrl = null;
+    const imageUrl = await getTreeImageUrl(item.image_url);
 
-    if (item.image_url) {
-      const { data, error } = await supabaseClient.storage
-        .from("tree-photos")
-        .createSignedUrl(item.image_url, 60 * 60);
+    return `<div class="tree-card">
+      <strong>${esc(item.title || "MEMORY TREE")}</strong>
+      ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
+      <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
+      ${imageUrl ? `<img src="${imageUrl}" alt="Uploaded memory image" onclick="openMemoryViewer('${item.id}')">` : ""}
+      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+      ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+      ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+      <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
+      <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
+    </div>`;
+  }));
 
-      if (!error) imageUrl = data.signedUrl;
-    }
+  $("treeList").innerHTML = cards.join("");
+}
 
+async function openMemoryViewer(id) {
+  const item = allItems.find(i => i.id === id);
+  if (!item) return;
+
+  const imageUrl = await getTreeImageUrl(item.image_url);
+
+  $("memoryViewerUser").textContent = "@" + (currentProfile?.username || "you");
+  $("memoryViewerTitle").textContent = item.title || "MEMORY TREE";
+  $("memoryViewerDate").textContent = new Date(item.created_at).toLocaleString();
+
+  $("memoryViewerImage").src = imageUrl || "";
+  $("memoryViewerImage").style.display = imageUrl ? "block" : "none";
+
+  $("memoryViewerText").innerHTML = `
+    ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+  `;
+
+  $("memoryViewer").classList.remove("hidden");
+}
+
+function closeMemoryViewer() {
+  $("memoryViewer").classList.add("hidden");
+}
+
+                    
     return `<div class="tree-card">
       <strong>${esc(item.title || "MEMORY TREE")}</strong>
       ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
