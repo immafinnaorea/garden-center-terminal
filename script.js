@@ -844,13 +844,78 @@ async function searchFriend() {
 }
 
 async function loadFriends() {
+  if (!currentUser) return;
+
   const sidebar = $("sidebarFriendsList");
   const realList = $("realFriendsList");
   const requests = $("friendRequestsList");
 
-  if (sidebar) sidebar.innerHTML = "<p class='muted'>No friends loaded yet.</p>";
-  if (realList) realList.innerHTML = "<p class='muted'>No friends loaded yet.</p>";
-  if (requests) requests.innerHTML = "<p class='muted'>No pending requests.</p>";
+  const { data, error } = await supabaseClient
+    .from("friends")
+    .select("*")
+    .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Friend load error:", error.message);
+    if (sidebar) sidebar.innerHTML = "<p class='muted'>Friend load error.</p>";
+    if (realList) realList.innerHTML = "<p class='muted'>Friend load error.</p>";
+    return;
+  }
+
+  const rows = data || [];
+  const accepted = rows.filter(r => r.status === "accepted");
+  const pendingIncoming = rows.filter(r => r.status === "pending" && r.receiver_id === currentUser.id);
+
+  const friendIds = [...new Set(
+    accepted.map(r => r.sender_id === currentUser.id ? r.receiver_id : r.sender_id)
+  )];
+
+  let profiles = [];
+  if (friendIds.length || pendingIncoming.length) {
+    const ids = [...new Set([
+      ...friendIds,
+      ...pendingIncoming.map(r => r.sender_id)
+    ])];
+
+    const res = await supabaseClient
+      .from("profiles")
+      .select("id, username, display_name")
+      .in("id", ids);
+
+    profiles = res.data || [];
+  }
+
+  const profileById = Object.fromEntries(profiles.map(p => [p.id, p]));
+
+  const friendHTML = accepted.length
+    ? accepted.map(r => {
+        const friendId = r.sender_id === currentUser.id ? r.receiver_id : r.sender_id;
+        const p = profileById[friendId];
+
+        return `<div class="friend-row">
+          <strong>@${esc(p?.username || "unknown")}</strong>
+          <button onclick="visitGarden('${friendId}', '${esc(p?.username || "unknown")}')">VISIT</button>
+        </div>`;
+      }).join("")
+    : "<p class='muted'>No friends loaded yet.</p>";
+
+  if (sidebar) sidebar.innerHTML = friendHTML;
+  if (realList) realList.innerHTML = friendHTML;
+
+  if (requests) {
+    requests.innerHTML = pendingIncoming.length
+      ? pendingIncoming.map(r => {
+          const p = profileById[r.sender_id];
+
+          return `<div class="request-card">
+            <strong>@${esc(p?.username || "unknown")}</strong>
+            <button onclick="respondFriendRequest('${r.id}', 'accepted')">ACCEPT</button>
+            <button onclick="deleteFriendship('${r.id}')">DECLINE</button>
+          </div>`;
+        }).join("")
+      : "<p class='muted'>No pending requests.</p>";
+  }
 }
 $("signupBtn").addEventListener("click", signUp);
 $("loginBtn").addEventListener("click", login);
