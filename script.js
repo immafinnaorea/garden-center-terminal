@@ -314,25 +314,12 @@ function closeMemoryViewer() {
   $("memoryViewer").classList.add("hidden");
 }
 
-function closeMemoryViewer() {
-  $("memoryViewer").classList.add("hidden");
-}
+
 
 async function renderAll() {                    
     return `<div class="tree-card">
       <strong>${esc(item.title || "MEMORY TREE")}</strong>
-      ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
-      <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-      ${imageUrl ? `<img src="${imageUrl}" alt="Uploaded memory image">` : ""}
-      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
-      ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-      ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-      <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
-      <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
-    </div>`;
-  }));
 
-  $("treeList").innerHTML = cards.join("");
 }
 
 async function renderAll() {
