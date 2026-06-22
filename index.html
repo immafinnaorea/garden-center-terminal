@@ -329,7 +329,27 @@
         </div>
       </aside>
     </div>
+<div id="memoryViewer" class="memory-viewer hidden">
+  <div id="memoryViewerHeader" class="memory-viewer-header">
+    <span id="memoryViewerUser">@user</span>
+    <div class="memory-window-buttons">
+      <button type="button">_</button>
+      <button type="button">□</button>
+      <button type="button" onclick="closeMemoryViewer()">x</button>
+    </div>
+  </div>
 
+  <div class="memory-viewer-body">
+    <div class="memory-viewer-meta">
+      <span id="memoryViewerTitle">MEMORY TREE</span>
+      <span id="memoryViewerDate"></span>
+    </div>
+
+    <img id="memoryViewerImage" alt="Opened memory image" />
+
+    <div id="memoryViewerText" class="memory-viewer-text"></div>
+  </div>
+</div>
     <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.6 social garden</span></footer>
   </div>
 
