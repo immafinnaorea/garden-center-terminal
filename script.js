@@ -812,7 +812,46 @@ function usePrompt(prompt, category) {
   $("gardenEntry").value = prompt + "\n\n";
   $("gardenEntry").focus();
 }
+async function searchFriend() {
+  const term = $("friendSearchInput")?.value.trim().replace(/^@/, "").toLowerCase();
 
+  if (!term) {
+    $("friendSearchResults").innerHTML = "<p class='muted'>Type a username first.</p>";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, username, display_name")
+    .ilike("username", `%${term}%`)
+    .neq("id", currentUser.id)
+    .limit(10);
+
+  if (error) {
+    $("friendSearchResults").innerHTML = `<p class='muted'>Search error: ${esc(error.message)}</p>`;
+    return;
+  }
+
+  $("friendSearchResults").innerHTML = data?.length
+    ? data.map(p => `
+      <div class="search-result">
+        <strong>@${esc(p.username)}</strong>
+        <p class="muted">${esc(p.display_name || p.username)}</p>
+        <button onclick="visitGarden('${p.id}', '${esc(p.username)}')">VISIT GARDEN</button>
+      </div>
+    `).join("")
+    : "<p class='muted'>No gardeners found.</p>";
+}
+
+async function loadFriends() {
+  const sidebar = $("sidebarFriendsList");
+  const realList = $("realFriendsList");
+  const requests = $("friendRequestsList");
+
+  if (sidebar) sidebar.innerHTML = "<p class='muted'>No friends loaded yet.</p>";
+  if (realList) realList.innerHTML = "<p class='muted'>No friends loaded yet.</p>";
+  if (requests) requests.innerHTML = "<p class='muted'>No pending requests.</p>";
+}
 $("signupBtn").addEventListener("click", signUp);
 $("loginBtn").addEventListener("click", login);
 $("logoutBtn").addEventListener("click", logout);
