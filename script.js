@@ -3,7 +3,6 @@ const SUPABASE_KEY = "sb_publishable_age7Wf-S-brKlOi16lk-AQ_HLoxR3gR";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
-
 let currentUser = null;
 let currentProfile = null;
 let allItems = [];
@@ -13,79 +12,25 @@ let currentVisitedItems = [];
 let currentPrompt = "";
 
 const promptBank = {
-  gentle: {
-    label: "GENTLE / STABILITY",
-    items: [
-      "What needs water today?",
-      "What part of me is still growing?",
-      "What can I let be imperfect?",
-      "What root kept me steady today?"
-    ]
-  },
-  creative: {
-    label: "CREATIVE WRITING",
-    items: [
-      "Describe a greenhouse that protects impossible plants.",
-      "Write about a tree that remembers everyone who sat beneath it.",
-      "Describe a town after rain.",
-      "Invent a character who keeps seeds in their coat pocket."
-    ]
-  },
-  memory: {
-    label: "MEMORY",
-    items: [
-      "What memory has been taking root lately?",
-      "What photo would explain today?",
-      "What moment would I press between book pages?"
-    ]
-  },
-  future: {
-    label: "FUTURE GROWTH",
-    items: [
-      "What am I planting for future me?",
-      "What would a good season look like?",
-      "What project deserves patience?"
-    ]
-  },
-  dream: {
-    label: "DREAMLIKE",
-    items: [
-      "Write about a flower that only opens when nobody is watching.",
-      "Describe a dream as if it were a map.",
-      "What did the night leave behind?"
-    ]
-  }
+  gentle: { label: "GENTLE / STABILITY", items: ["What needs water today?","What part of me is still growing?","What can I let be imperfect?","What root kept me steady today?"] },
+  creative: { label: "CREATIVE WRITING", items: ["Describe a greenhouse that protects impossible plants.","Write about a tree that remembers everyone who sat beneath it.","Describe a town after rain.","Invent a character who keeps seeds in their coat pocket."] },
+  memory: { label: "MEMORY", items: ["What memory has been taking root lately?","What photo would explain today?","What moment would I press between book pages?"] },
+  future: { label: "FUTURE GROWTH", items: ["What am I planting for future me?","What would a good season look like?","What project deserves patience?"] },
+  dream: { label: "DREAMLIKE", items: ["Write about a flower that only opens when nobody is watching.","Describe a dream as if it were a map.","What did the night leave behind?"] }
 };
+promptBank.all = { label: "ALL PROMPTS", items: Object.values(promptBank).flatMap(c => c.items) };
 
-promptBank.all = {
-  label: "ALL PROMPTS",
-  items: Object.values(promptBank).flatMap(c => c.items)
-};
-
-function esc(s = "") {
-  return String(s).replace(/[&<>'"]/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "'": "&#39;",
-    '"': "&quot;"
-  }[c]));
-}
+function esc(s = "") { return String(s).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
 
 function setStatus(status) {
-  const el = $("activeStatus");
-  if (el) el.textContent = status;
+  $("activeStatus").textContent = status;
 }
 
 function openSection(id) {
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active-section"));
   document.querySelectorAll(".nav").forEach(n => n.classList.remove("active"));
-
-  const section = $(id);
-  const nav = document.querySelector(`[data-section="${id}"]`);
-
-  if (section) section.classList.add("active-section");
-  if (nav) nav.classList.add("active");
+  $(id).classList.add("active-section");
+  document.querySelector(`[data-section="${id}"]`).classList.add("active");
 
   const map = {
     garden: "🌱 planting...",
@@ -99,13 +44,10 @@ function openSection(id) {
     community: "👥 visiting...",
     settings: "⚙ adjusting..."
   };
-
   setStatus(map[id] || "🌱 idle");
 }
 
-document.querySelectorAll(".nav").forEach(b => {
-  b.addEventListener("click", () => openSection(b.dataset.section));
-});
+document.querySelectorAll(".nav").forEach(b => b.addEventListener("click", () => openSection(b.dataset.section)));
 
 document.querySelectorAll("textarea, input").forEach(el => {
   el.addEventListener("input", () => {
@@ -133,44 +75,32 @@ async function signUp() {
     return;
   }
 
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: { data: { username } }
-  });
+  const { error } = await supabaseClient.auth.signUp({ email, password, options: { data: { username } } });
 
   if (error) {
     $("authMessage").textContent = error.message;
     return;
   }
-
   $("authMessage").textContent = "Account created. Check your email if confirmation is required, then login.";
 }
 
 async function login() {
   const email = $("authEmail").value.trim();
   const password = $("authPassword").value;
-
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
     $("authMessage").textContent = error.message;
     return;
   }
-
   await loadSession();
 }
 
 async function logout() {
   await supabaseClient.auth.signOut();
-
   currentUser = null;
   currentProfile = null;
   allItems = [];
-
   $("authScreen").classList.remove("hidden");
   $("appScreen").classList.add("hidden");
 }
@@ -187,11 +117,11 @@ async function loadSession() {
 
   $("authScreen").classList.add("hidden");
   $("appScreen").classList.remove("hidden");
-
   await loadProfile();
   await loadCloudItems();
   await loadFriends();
 }
+
 
 async function loadProfile() {
   const { data, error } = await supabaseClient
@@ -251,25 +181,17 @@ async function saveProfile() {
 }
 
 async function loadCloudItems() {
-  const { data, error } = await supabaseClient
-    .from("garden_items")
-    .select("*")
-    .order("created_at", { ascending: false });
-
+  const { data, error } = await supabaseClient.from("garden_items").select("*").order("created_at", { ascending: false });
   if (error) {
     alert("Load error: " + error.message);
     return;
   }
-
   allItems = data || [];
-  await renderAll();
+  renderAll();
 }
 
 async function addCloudItem(item) {
-  if (!currentUser) {
-    alert("Please login first.");
-    return;
-  }
+  if (!currentUser) return alert("Please login first.");
 
   const { error } = await supabaseClient.from("garden_items").insert({
     user_id: currentUser.id,
@@ -288,56 +210,25 @@ async function addCloudItem(item) {
     alert("Save error: " + error.message);
     return;
   }
-
   await loadCloudItems();
 }
 
 async function deleteCloudItem(id) {
-  const { error } = await supabaseClient
-    .from("garden_items")
-    .delete()
-    .eq("id", id);
-
+  const { error } = await supabaseClient.from("garden_items").delete().eq("id", id);
   if (error) {
     alert("Delete error: " + error.message);
     return;
   }
-
-  closeMemoryViewer();
   await loadCloudItems();
 }
 
 async function toggleShare(id, currentValue) {
-  const { error } = await supabaseClient
-    .from("garden_items")
-    .update({ is_shared: !currentValue })
-    .eq("id", id);
-
+  const { error } = await supabaseClient.from("garden_items").update({ is_shared: !currentValue }).eq("id", id);
   if (error) {
     alert("Share update error: " + error.message);
     return;
   }
-
   await loadCloudItems();
-}
-
-async function getTreeImageUrl(path) {
-  if (!path) return null;
-
-  if (path.startsWith("http")) {
-    return path;
-  }
-
-  const { data, error } = await supabaseClient.storage
-    .from("tree-photos")
-    .createSignedUrl(path, 60 * 60);
-
-  if (error) {
-    console.warn("Signed URL error:", error.message);
-    return null;
-  }
-
-  return data.signedUrl;
 }
 
 function itemHTML(item) {
@@ -346,11 +237,10 @@ function itemHTML(item) {
     ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
     <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
     ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-    ${item.image_url && item.section !== "trees" ? `<img src="${item.image_url}" alt="Uploaded memory image">` : ""}
-    ${item.body ? `<p>${esc(item.body).replaceAll("\n", "<br>")}</p>` : ""}
+    ${item.image_url ? `<img src="${item.image_url}" alt="Uploaded memory image">` : ""}
+    ${item.body ? `<p>${esc(item.body).replaceAll("\n","<br>")}</p>` : ""}
     ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
     ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-    <button onclick="openMemoryViewer('${item.id}')">OPEN</button>
     <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
     <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
   </div>`;
@@ -358,12 +248,7 @@ function itemHTML(item) {
 
 function renderSection(section, target, empty) {
   const items = allItems.filter(i => i.section === section);
-  const targetEl = $(target);
-  if (!targetEl) return;
-
-  targetEl.innerHTML = items.length
-    ? items.map(itemHTML).join("")
-    : `<p class="muted">${empty}</p>`;
+  $(target).innerHTML = items.length ? items.map(itemHTML).join("") : `<p class="muted">${empty}</p>`;
 }
 
 function renderPublicMockFeed() {
@@ -371,141 +256,35 @@ function renderPublicMockFeed() {
   if (!feed) return;
 
   const shared = allItems.filter(i => i.is_shared);
-
   feed.innerHTML = shared.length
-    ? shared.map(item => `<div class="item">
-        <strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong>
-        <p>${esc(item.title || item.mood || "Public item")}</p>
-        ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-      </div>`).join("")
+    ? shared.map(item => `<div class="item"><strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p>${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}</div>`).join("")
     : "<p class='muted'>No public/shared items yet. Check share on a Seed, Tree, Moonflower, or Entry.</p>";
 }
 
-async function renderTrees() {
+
+function renderTrees() {
   const items = allItems.filter(i => i.section === "trees");
-
-  if (!items.length) {
-    $("treeList").innerHTML = "<p class='muted'>NO MEMORY TREES PLANTED YET.</p>";
-    return;
-  }
-
-  const cards = await Promise.all(items.map(async item => {
-    const imageUrl = await getTreeImageUrl(item.image_url);
-
-    return `<div class="tree-card">
-      <strong>${esc(item.title || "MEMORY TREE")}</strong>
-      ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
-      <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-      ${imageUrl ? `<img class="tree-memory-photo" src="${imageUrl}" alt="Uploaded memory image" onclick="openMemoryViewer('${item.id}')">` : ""}
-      ${item.body ? `<p>${esc(item.body).replaceAll("\\n", "<br>")}</p>` : ""}
-      ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-      ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-      <button onclick="openMemoryViewer('${item.id}')">OPEN MEMORY</button>
-      <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
-      <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
-    </div>`;
-  }));
-
-  $("treeList").innerHTML = cards.join("");
+  $("treeList").innerHTML = items.length
+    ? items.map(item => `<div class="tree-card">
+        <strong>${esc(item.title || "MEMORY TREE")}</strong>
+        ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
+        <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
+        ${item.image_url ? `<img src="${item.image_url}" alt="Uploaded memory image">` : ""}
+        ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
+        ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+        ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+        <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
+        <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
+      </div>`).join("")
+    : "<p class='muted'>NO MEMORY TREES PLANTED YET.</p>";
 }
 
-async function openMemoryViewer(id, source = "own") {
-  const list = source === "visited" ? currentVisitedItems : allItems;
-  const item = list.find(i => i.id === id);
-  if (!item) return;
-
-  let imageUrl = null;
-
-  if (item.section === "trees") {
-    imageUrl = await getTreeImageUrl(item.image_url);
-  } else {
-    imageUrl = item.image_url || null;
-  }
-
-  const viewer = $("memoryViewer");
-  if (!viewer) {
-    alert("Memory viewer HTML is missing.");
-    return;
-  }
-
-  $("memoryViewerUser").textContent = source === "visited"
-    ? "@" + (currentVisitedFriend?.username || "friend")
-    : "@" + (currentProfile?.username || "you");
-
-  $("memoryViewerTitle").textContent = item.title || item.mood || item.section.toUpperCase();
-  $("memoryViewerDate").textContent = new Date(item.created_at).toLocaleString();
-
-  $("memoryViewerImage").src = imageUrl || "";
-  $("memoryViewerImage").style.display = imageUrl ? "block" : "none";
-
-  $("memoryViewerText").innerHTML = `
-    <p class="muted">SECTION: ${esc(item.section)}</p>
-    ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-    ${item.body ? `<p>${esc(item.body).replaceAll("\\n", "<br>")}</p>` : ""}
-    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-  `;
-
-  viewer.classList.remove("hidden");
-}
-
-function closeMemoryViewer() {
-  const viewer = $("memoryViewer");
-  if (viewer) viewer.classList.add("hidden");
-}
-
-function makeMemoryViewerDraggable() {
-  const viewer = $("memoryViewer");
-  const header = $("memoryViewerHeader");
-
-  if (!viewer || !header) return;
-
-  let dragging = false;
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
-
-  header.addEventListener("mousedown", e => {
-    if (e.target.tagName.toLowerCase() === "button") return;
-
-    dragging = true;
-    const rect = viewer.getBoundingClientRect();
-
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = rect.left;
-    startTop = rect.top;
-
-    viewer.style.left = startLeft + "px";
-    viewer.style.top = startTop + "px";
-    viewer.style.right = "auto";
-    viewer.style.bottom = "auto";
-
-    document.body.style.userSelect = "none";
-  });
-
-  document.addEventListener("mousemove", e => {
-    if (!dragging) return;
-
-    viewer.style.left = startLeft + (e.clientX - startX) + "px";
-    viewer.style.top = startTop + (e.clientY - startY) + "px";
-  });
-
-  document.addEventListener("mouseup", () => {
-    dragging = false;
-    document.body.style.userSelect = "";
-  });
-}
-
-async function renderAll() {
+function renderAll() {
   renderSection("garden", "gardenEntries", "NO GARDEN ENTRIES YET.");
   renderSection("prompt_vault", "promptVault", "NO SAVED PROMPTS.");
   renderSection("seeds", "seedBank", "NO SEEDS SAVED YET.");
   renderSection("moonflowers", "dreamList", "NO DREAMS SAVED YET.");
-
-  await renderTrees();
-
+  renderTrees();
   renderSection("greenhouse", "greenhouseList", "GREENHOUSE IS EMPTY.");
   renderSection("chimes", "songList", "NO WIND CHIMES YET.");
   renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
@@ -514,22 +293,18 @@ async function renderAll() {
 
 function newPrompt() {
   const c = promptBank[$("promptType").value];
-
   $("promptLabel").textContent = c.label;
   $("promptText").textContent = c.items[Math.floor(Math.random() * c.items.length)];
   currentPrompt = $("promptText").textContent;
   $("sidebarPrompt").innerHTML = `<em>${esc(currentPrompt)}</em>`;
-
   setStatus("💧 watering prompt...");
 }
 
 function usePrompt(prompt, category) {
   $("promptLabel").textContent = category;
   $("promptText").textContent = prompt;
-
   currentPrompt = prompt;
   $("sidebarPrompt").innerHTML = `<em>${esc(currentPrompt)}</em>`;
-
   openSection("garden");
   $("gardenEntry").value = prompt + "\n\n";
   $("gardenEntry").focus();
@@ -543,24 +318,11 @@ $("searchFriendBtn").addEventListener("click", searchFriend);
 
 $("saveGardenEntry").onclick = () => {
   const body = $("gardenEntry").value.trim();
-
-  if (!body) {
-    alert("Write something first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "garden",
-    mood: selectedMood || "None",
-    body,
-    title: selectedMood || "Garden Entry",
-    is_shared: $("shareGardenEntry").checked
-  });
-
+  if (!body) return alert("Write something first.");
+  addCloudItem({ section: "garden", mood: selectedMood || "None", body, title: selectedMood || "Garden Entry", is_shared: $("shareGardenEntry").checked });
   $("gardenEntry").value = "";
   $("gardenHelped").value = "";
   $("shareGardenEntry").checked = false;
-
   selectedMood = "";
   $("selectedMoodText").textContent = "None";
   document.querySelectorAll(".mood-btn").forEach(b => b.classList.remove("selected"));
@@ -568,53 +330,11 @@ $("saveGardenEntry").onclick = () => {
 
 $("newPrompt").onclick = newPrompt;
 $("promptType").onchange = newPrompt;
-$("savePrompt").onclick = () => addCloudItem({
-  section: "prompt_vault",
-  title: $("promptLabel").textContent,
-  prompt: $("promptText").textContent,
-  is_shared: false
-});
-
+$("savePrompt").onclick = () => addCloudItem({ section: "prompt_vault", title: $("promptLabel").textContent, prompt: $("promptText").textContent, is_shared: false });
 $("sendPromptToGarden").onclick = () => usePrompt($("promptText").textContent, $("promptLabel").textContent);
 
-$("saveSeed").onclick = () => {
-  const body = $("seedText").value.trim();
-
-  if (!body) {
-    alert("Drop a seed first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "seeds",
-    title: "SEED",
-    body,
-    is_shared: $("shareSeed").checked
-  });
-
-  $("seedText").value = "";
-  $("shareSeed").checked = false;
-};
-
-$("saveDream").onclick = () => {
-  const body = $("dreamText").value.trim();
-
-  if (!body) {
-    alert("Write the dream first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "moonflowers",
-    title: $("dreamTitle").value.trim() || "MOONFLOWER",
-    body,
-    is_shared: $("shareDream").checked
-  });
-
-  $("dreamTitle").value = "";
-  $("dreamText").value = "";
-  $("shareDream").checked = false;
-};
+$("saveSeed").onclick = () => { const body = $("seedText").value.trim(); if (!body) return alert("Drop a seed first."); addCloudItem({ section: "seeds", title: "SEED", body, is_shared: $("shareSeed").checked }); $("seedText").value = ""; $("shareSeed").checked = false; };
+$("saveDream").onclick = () => { const body = $("dreamText").value.trim(); if (!body) return alert("Write the dream first."); addCloudItem({ section: "moonflowers", title: $("dreamTitle").value.trim() || "MOONFLOWER", body, is_shared: $("shareDream").checked }); $("dreamTitle").value = ""; $("dreamText").value = ""; $("shareDream").checked = false; };
 
 async function uploadTreePhoto(file) {
   if (!file) return null;
@@ -633,7 +353,11 @@ async function uploadTreePhoto(file) {
     throw uploadError;
   }
 
-  return filePath;
+  const { data } = supabaseClient.storage
+    .from("tree-photos")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 }
 
 $("saveTree").onclick = async () => {
@@ -641,14 +365,10 @@ $("saveTree").onclick = async () => {
   const title = $("treeTitle").value.trim() || "MEMORY TREE";
   const file = $("treePhoto").files[0];
 
-  if (!body && !title && !file) {
-    alert("Plant something first.");
-    return;
-  }
+  if (!body && !title && !file) return alert("Plant something first.");
 
   try {
     $("treeUploadStatus").textContent = file ? "Uploading photo..." : "Saving tree...";
-
     const imageUrl = file ? await uploadTreePhoto(file) : null;
 
     await addCloudItem({
@@ -672,72 +392,14 @@ $("saveTree").onclick = async () => {
     $("treeUploadStatus").textContent = "Tree upload error: " + error.message;
   }
 };
+$("saveGreenhouse").onclick = () => { const body = $("greenText").value.trim(); if (!body) return alert("Write something first."); addCloudItem({ section: "greenhouse", title: $("greenTitle").value.trim() || "GREENHOUSE PIECE", body, is_shared: $("shareGreenhouse").checked }); $("greenTitle").value = ""; $("greenText").value = ""; $("shareGreenhouse").checked = false; };
+$("saveSong").onclick = () => { const title = $("songTitle").value.trim(); if (!title) return alert("Add a song title first."); addCloudItem({ section: "chimes", title, body: $("songArtist").value.trim() + "\n" + $("songVibe").value.trim(), is_shared: $("shareSong").checked }); $("songTitle").value = ""; $("songArtist").value = ""; $("songVibe").value = ""; $("shareSong").checked = false; };
+$("saveProject").onclick = () => { const body = $("projectText").value.trim(); const title = $("projectTitle").value.trim() || "PROJECT TREE"; if (!body && !title) return alert("Plant something first."); addCloudItem({ section: "orchard", title, body, is_shared: $("shareProject").checked }); $("projectTitle").value = ""; $("projectText").value = ""; $("shareProject").checked = false; };
 
-$("saveGreenhouse").onclick = () => {
-  const body = $("greenText").value.trim();
 
-  if (!body) {
-    alert("Write something first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "greenhouse",
-    title: $("greenTitle").value.trim() || "GREENHOUSE PIECE",
-    body,
-    is_shared: $("shareGreenhouse").checked
-  });
-
-  $("greenTitle").value = "";
-  $("greenText").value = "";
-  $("shareGreenhouse").checked = false;
-};
-
-$("saveSong").onclick = () => {
-  const title = $("songTitle").value.trim();
-
-  if (!title) {
-    alert("Add a song title first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "chimes",
-    title,
-    body: $("songArtist").value.trim() + "\n" + $("songVibe").value.trim(),
-    is_shared: $("shareSong").checked
-  });
-
-  $("songTitle").value = "";
-  $("songArtist").value = "";
-  $("songVibe").value = "";
-  $("shareSong").checked = false;
-};
-
-$("saveProject").onclick = () => {
-  const body = $("projectText").value.trim();
-  const title = $("projectTitle").value.trim() || "PROJECT TREE";
-
-  if (!body && !title) {
-    alert("Plant something first.");
-    return;
-  }
-
-  addCloudItem({
-    section: "orchard",
-    title,
-    body,
-    is_shared: $("shareProject").checked
-  });
-
-  $("projectTitle").value = "";
-  $("projectText").value = "";
-  $("shareProject").checked = false;
-};
 
 async function searchFriend() {
   const term = $("friendSearchInput").value.trim().replace(/^@/, "").toLowerCase();
-
   if (!term) {
     $("friendSearchResults").innerHTML = "<p class='muted'>Type a username first.</p>";
     return;
@@ -773,11 +435,7 @@ async function searchFriend() {
 async function sendFriendRequest(receiverId) {
   const { error } = await supabaseClient
     .from("friends")
-    .insert({
-      sender_id: currentUser.id,
-      receiver_id: receiverId,
-      status: "pending"
-    });
+    .insert({ sender_id: currentUser.id, receiver_id: receiverId, status: "pending" });
 
   if (error) {
     if (error.message.includes("duplicate") || error.message.includes("unique")) {
@@ -807,20 +465,14 @@ async function loadFriends() {
   }
 
   const rows = data || [];
-  const ids = [...new Set(
-    rows
-      .flatMap(r => [r.sender_id, r.receiver_id])
-      .filter(id => id !== currentUser.id)
-  )];
+  const ids = [...new Set(rows.flatMap(r => [r.sender_id, r.receiver_id]).filter(id => id !== currentUser.id))];
 
   let profiles = [];
-
   if (ids.length) {
     const res = await supabaseClient
       .from("profiles")
       .select("id, username, display_name")
       .in("id", ids);
-
     profiles = res.data || [];
   }
 
@@ -831,7 +483,6 @@ async function loadFriends() {
   $("friendRequestsList").innerHTML = pendingIncoming.length
     ? pendingIncoming.map(r => {
         const p = profileById[r.sender_id];
-
         return `<div class="request-card">
           <strong>@${esc(p?.username || "unknown")}</strong>
           <p class="muted">wants to plant a friendship.</p>
@@ -845,7 +496,6 @@ async function loadFriends() {
     ? accepted.map(r => {
         const friendId = r.sender_id === currentUser.id ? r.receiver_id : r.sender_id;
         const p = profileById[friendId];
-
         return `<div class="friend-row">
           <strong onclick="visitGarden('${friendId}', '${esc(p?.username || "unknown")}')">@${esc(p?.username || "unknown")}</strong>
           <button class="secondary" onclick="visitGarden('${friendId}', '${esc(p?.username || "unknown")}')">VISIT GARDEN</button>
@@ -855,13 +505,11 @@ async function loadFriends() {
     : "<p class='muted'>No accepted friends yet.</p>";
 
   const sidebar = $("sidebarFriendsList");
-
   if (sidebar) {
     sidebar.innerHTML = accepted.length
       ? accepted.map(r => {
           const friendId = r.sender_id === currentUser.id ? r.receiver_id : r.sender_id;
           const p = profileById[friendId];
-
           return `<p><button class="sidebar-friend-button" onclick="visitGarden('${friendId}', '${esc(p?.username || "unknown")}')">🌱 @${esc(p?.username || "unknown")}</button></p>`;
         }).join("")
       : "<p class='muted'>No friends yet.</p>";
@@ -903,7 +551,6 @@ async function visitGarden(friendId, username) {
   $("visitedGardenTitle").textContent = `IN @${username}'S GARDEN`;
   $("visitedGardenSubtitle").textContent = "Loading shared/public memories, entries, and trees...";
   $("visitedGardenItems").innerHTML = "<p class='muted'>Loading shared garden...</p>";
-
   openSection("community");
 
   const { data, error } = await supabaseClient
@@ -958,9 +605,9 @@ function renderVisitedGarden(filter = "all") {
         <strong>${esc(item.title || item.mood || item.section)}</strong>
         <span class="shared-badge">${esc(item.section).toUpperCase()}</span>
         <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-        ${item.image_url ? `<button onclick="openMemoryViewer('${item.id}', 'visited')">OPEN IMAGE / POST</button>` : `<button onclick="openMemoryViewer('${item.id}', 'visited')">OPEN POST</button>`}
+        ${item.image_url ? `<img src="${item.image_url}" alt="Shared garden image">` : ""}
         ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-        ${item.body ? `<p>${esc(item.body).replaceAll("\\n", "<br>")}</p>` : ""}
+        ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
         ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
         ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
       </div>`).join("")
@@ -969,39 +616,24 @@ function renderVisitedGarden(filter = "all") {
 
 $("applyTheme").onclick = () => {
   const color = $("hexColor").value.trim() || $("themeColor").value;
-
   document.documentElement.style.setProperty("--text", color);
   document.documentElement.style.setProperty("--line", color);
   document.documentElement.style.setProperty("--muted", color + "99");
-
   localStorage.setItem("gt_theme", color);
 };
+$("themeColor").oninput = () => $("hexColor").value = $("themeColor").value;
+$("resetTheme").onclick = () => { localStorage.removeItem("gt_theme"); location.reload(); };
 
-$("themeColor").oninput = () => {
-  $("hexColor").value = $("themeColor").value;
-};
-
-$("resetTheme").onclick = () => {
-  localStorage.removeItem("gt_theme");
-  location.reload();
-};
-
-function updateClock() {
-  $("clock").textContent = new Date().toLocaleString();
-}
-
+function updateClock() { $("clock").textContent = new Date().toLocaleString(); }
 const savedTheme = localStorage.getItem("gt_theme");
-
 if (savedTheme) {
   document.documentElement.style.setProperty("--text", savedTheme);
   document.documentElement.style.setProperty("--line", savedTheme);
   document.documentElement.style.setProperty("--muted", savedTheme + "99");
-
   $("themeColor").value = savedTheme;
   $("hexColor").value = savedTheme;
 }
 
-makeMemoryViewerDraggable();
 newPrompt();
 updateClock();
 setInterval(updateClock, 1000);

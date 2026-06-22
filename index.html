@@ -35,7 +35,7 @@
     <header class="titlebar">
       <div>
         <span class="title">THE GARDEN TERMINAL</span>
-        <span class="subtitle">cloud synced // private garden // v0.7 alpha</span>
+        <span class="subtitle">cloud synced // private garden // v0.6</span>
       </div>
       <div class="user-box">
         <span id="userHandle"></span>
@@ -63,22 +63,6 @@
           <button class="nav" data-section="community">👥 COMMUNITY</button>
           <button class="nav" data-section="settings">⚙ SETTINGS</button>
         </nav>
-
-        <div class="moose-box">
-          <div class="moose-scene" aria-label="8-bit moose eating grass">
-            <div class="grass grass-a"></div>
-            <div class="grass grass-b"></div>
-            <div class="pixel-moose">
-              <div class="antlers"></div>
-              <div class="body"></div>
-              <div class="neck"></div>
-              <div class="head"></div>
-              <div class="nose"></div>
-              <div class="leg l1"></div><div class="leg l2"></div><div class="leg l3"></div><div class="leg l4"></div>
-            </div>
-          </div>
-          <p class="muted center">MOOSE COMPANION // grazing...</p>
-        </div>
       </aside>
 
       <main class="workspace">
@@ -131,7 +115,7 @@
         </section>
 
         <section id="watering" class="section">
-          <div class="section-header"><h1>💧 WATERING CAN</h1><p>Prompts to water whatever needs attention.</p></div>
+          <div class="section-header"><h1>💧 WATERING CAN</h1><p>Prompts to water whatever needs attention. Current prompt can appear in the social sidebar.</p></div>
           <div class="panel">
             <h2>PROMPT GENERATOR</h2>
             <label>Prompt type</label>
@@ -203,8 +187,8 @@
           </div>
 
           <div class="panel">
-            <div class="panel-title-row"><h2>MEMORY GROVE</h2><span id="treeStats" class="muted"></span></div>
-            <div id="treeList" class="memory-grid"></div>
+            <h2>MEMORY GROVE</h2>
+            <div id="treeList" class="tree-grid"></div>
           </div>
         </section>
 
@@ -259,8 +243,16 @@
             <div id="friendSearchResults"></div>
           </div>
 
-          <div class="panel"><h2>FRIENDSHIP REQUESTS</h2><div id="friendRequestsList"></div></div>
-          <div class="panel"><h2>MY FRIENDS</h2><p class="muted">Click a friend to visit their shared garden.</p><div id="realFriendsList"></div></div>
+          <div class="panel">
+            <h2>FRIENDSHIP REQUESTS</h2>
+            <div id="friendRequestsList"></div>
+          </div>
+
+          <div class="panel">
+            <h2>MY FRIENDS</h2>
+            <p class="muted">Click a friend to visit their shared garden.</p>
+            <div id="realFriendsList"></div>
+          </div>
 
           <div class="panel">
             <h2 id="visitedGardenTitle">IN @USERNAME'S GARDEN</h2>
@@ -285,10 +277,13 @@
           <div class="panel">
             <h2>PROFILE</h2>
             <p class="muted">This is what friends will see in the Community Garden.</p>
+
             <label>Username</label>
             <input id="profileUsername" placeholder="halseyfan69" />
+
             <label>Display Name</label>
             <input id="profileDisplayName" placeholder="Halsey" />
+
             <button id="saveProfileBtn" class="primary">SAVE PROFILE</button>
             <p id="profileMessage" class="muted"></p>
           </div>
@@ -312,49 +307,30 @@
 
         <div class="friend-card">
           <strong>FRIENDS</strong>
-          <div id="sidebarFriendsList"><p class="muted">No friends loaded yet.</p></div>
-        </div>
-
-        <div class="friend-card"><strong>CURRENTLY WATERING</strong><p id="sidebarPrompt">No active prompt yet.</p></div>
-        <div class="friend-card"><strong>GARDEN NOTES</strong><p class="muted">Future DM / message area. No comments, just private notes.</p><button class="secondary" disabled>LEAVE NOTE SOON</button></div>
-        <div class="friend-card"><strong>PRIVACY</strong><p>Everything is private unless you check share.</p></div>
-      </aside>
-    </div>
-
-    <div id="postViewer" class="post-viewer hidden" role="dialog" aria-modal="true">
-      <div id="postViewerWindow" class="post-window">
-        <div id="postViewerHeader" class="post-window-header">
-          <span id="postViewerUser">@user</span>
-          <div class="post-window-buttons">
-            <button type="button" id="viewerMinimizeBtn">_</button>
-            <button type="button" id="viewerFullBtn">□</button>
-            <button type="button" id="viewerCloseBtn">x</button>
+          <div id="sidebarFriendsList">
+            <p class="muted">No friends loaded yet.</p>
           </div>
         </div>
 
-        <div class="post-window-body">
-          <aside class="post-info-panel">
-            <div class="post-mini-label">ARCHIVE ENTRY</div>
-            <h2 id="postViewerTitle">MEMORY TREE</h2>
-            <p id="postViewerDate" class="muted"></p>
-            <div id="postViewerMeta"></div>
-            <button id="postViewerEditBtn" class="secondary" disabled>EDIT ENTRY SOON</button>
-          </aside>
-
-          <section class="post-media-panel">
-            <img id="postViewerImage" alt="Opened post image" />
-            <div id="postViewerNoImage" class="no-image hidden">NO IMAGE ATTACHED</div>
-          </section>
+        <div class="friend-card">
+          <strong>CURRENTLY WATERING</strong>
+          <p id="sidebarPrompt">No active prompt yet.</p>
         </div>
 
-        <div class="post-window-footer">
-          <span id="postViewerPrivacy">PRIVATE MODE: ON 🔒</span>
-          <div id="postViewerCounter"></div>
+        <div class="friend-card">
+          <strong>GARDEN NOTES</strong>
+          <p class="muted">Future DM / message area. No comments, just private notes.</p>
+          <button class="secondary" disabled>LEAVE NOTE SOON</button>
         </div>
-      </div>
+
+        <div class="friend-card">
+          <strong>PRIVACY</strong>
+          <p>Everything is private unless you check share.</p>
+        </div>
+      </aside>
     </div>
 
-    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.7 alpha</span></footer>
+    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.6 social garden</span></footer>
   </div>
 
   <script src="script.js"></script>
