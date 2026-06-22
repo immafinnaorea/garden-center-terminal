@@ -248,19 +248,39 @@ async function uploadProjectImage(projectId) {
     return;
   }
 
-  const { error: insertError } = await supabaseClient
-    .from("project_images")
-    .insert({
-      project_id: projectId,
-      user_id: currentUser.id,
-      image_path: filePath,
-      caption
-    });
+ const { data: newImage, error: insertError } = await supabaseClient
+  .from("project_images")
+  .insert({
+    project_id: projectId,
+    user_id: currentUser.id,
+    image_path: filePath,
+    caption
+  })
+  
+const { data: newImage, error: insertError } = await supabaseClient
+  .from("project_images")
+  .insert({
+    project_id: projectId,
+    user_id: currentUser.id,
+    image_path: filePath,
+    caption
+  })
+  .select()
+  .single();
 
-  if (insertError) {
-    alert("Project image save error: " + insertError.message);
-    return;
-  }
+if (insertError) {
+  alert("Project image save error: " + insertError.message);
+  return;
+}
+
+
+
+projectImagesByProject[projectId].unshift(newImage);
+if (!projectImagesByProject[projectId]) {
+  projectImagesByProject[projectId] = [];
+}
+
+projectImagesByProject[projectId].unshift(newImage);
 
   fileInput.value = "";
   if (captionInput) captionInput.value = "";
