@@ -343,13 +343,16 @@ async function renderAll() {
   renderSection("chimes", "songList", "NO WIND CHIMES YET.");
   renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
   renderPublicMockFeed();
+  
 }
+function newPrompt() {
   const c = promptBank[$("promptType").value];
   $("promptLabel").textContent = c.label;
   $("promptText").textContent = c.items[Math.floor(Math.random() * c.items.length)];
   currentPrompt = $("promptText").textContent;
   $("sidebarPrompt").innerHTML = `<em>${esc(currentPrompt)}</em>`;
   setStatus("💧 watering prompt...");
+}
 }
 
 function usePrompt(prompt, category) {
