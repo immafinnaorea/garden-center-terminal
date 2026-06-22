@@ -10,6 +10,9 @@ let selectedMood = "";
 let currentVisitedFriend = null;
 let currentVisitedItems = [];
 let currentPrompt = "";
+let viewerItems = [];
+let viewerIndex = 0;
+let audioEnabled = true;
 
 const promptBank = {
   gentle: { label: "GENTLE / STABILITY", items: ["What needs water today?","What part of me is still growing?","What can I let be imperfect?","What root kept me steady today?"] },
@@ -20,7 +23,34 @@ const promptBank = {
 };
 promptBank.all = { label: "ALL PROMPTS", items: Object.values(promptBank).flatMap(c => c.items) };
 
-function esc(s = "") { return String(s).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+function esc(s = "") {
+  return String(s).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+}
+
+function sfx(type = "click") {
+  if (!audioEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const freqs = { click: 520, open: 720, close: 240, save: 880, delete: 120, hover: 360 };
+    osc.frequency.value = freqs[type] || 520;
+    osc.type = "square";
+    gain.gain.setValueAtTime(0.035, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
+  } catch(e) {}
+}
+
+document.addEventListener("click", e => {
+  if (e.target.closest("button")) sfx("click");
+});
+document.addEventListener("mouseover", e => {
+  if (e.target.closest("button,.tree-memory-photo,.visited-memory-photo")) sfx("hover");
+});
 
 function setStatus(status) {
   $("activeStatus").textContent = status;
@@ -122,7 +152,6 @@ async function loadSession() {
   await loadFriends();
 }
 
-
 async function loadProfile() {
   const { data, error } = await supabaseClient
     .from("profiles")
@@ -131,7 +160,6 @@ async function loadProfile() {
     .single();
 
   if (error) {
-    console.warn("Profile load error:", error.message);
     currentProfile = {
       username: currentUser.email.split("@")[0],
       display_name: currentUser.email.split("@")[0]
@@ -168,11 +196,9 @@ async function saveProfile() {
     .eq("id", currentUser.id);
 
   if (error) {
-    if (error.message.includes("duplicate") || error.message.includes("unique")) {
-      $("profileMessage").textContent = "That username is already taken.";
-    } else {
-      $("profileMessage").textContent = "Profile save error: " + error.message;
-    }
+    $("profileMessage").textContent = error.message.includes("duplicate") || error.message.includes("unique")
+      ? "That username is already taken."
+      : "Profile save error: " + error.message;
     return;
   }
 
@@ -187,7 +213,7 @@ async function loadCloudItems() {
     return;
   }
   allItems = data || [];
-  renderAll();
+  await renderAll();
 }
 
 async function addCloudItem(item) {
@@ -210,6 +236,7 @@ async function addCloudItem(item) {
     alert("Save error: " + error.message);
     return;
   }
+  sfx("save");
   await loadCloudItems();
 }
 
@@ -219,6 +246,7 @@ async function deleteCloudItem(id) {
     alert("Delete error: " + error.message);
     return;
   }
+  sfx("delete");
   await loadCloudItems();
 }
 
@@ -230,37 +258,6 @@ async function toggleShare(id, currentValue) {
   }
   await loadCloudItems();
 }
-
-function itemHTML(item) {
-  return `<div class="item">
-    <strong>${esc(item.title || item.mood || item.section.toUpperCase())}</strong>
-    ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
-    <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-    ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-    ${item.image_url ? `<img src="${item.image_url}" alt="Uploaded memory image">` : ""}
-    ${item.body ? `<p>${esc(item.body).replaceAll("\n","<br>")}</p>` : ""}
-    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-    <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
-    <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
-  </div>`;
-}
-
-function renderSection(section, target, empty) {
-  const items = allItems.filter(i => i.section === section);
-  $(target).innerHTML = items.length ? items.map(itemHTML).join("") : `<p class="muted">${empty}</p>`;
-}
-
-function renderPublicMockFeed() {
-  const feed = $("publicMockFeed");
-  if (!feed) return;
-
-  const shared = allItems.filter(i => i.is_shared);
-  feed.innerHTML = shared.length
-    ? shared.map(item => `<div class="item"><strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p>${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}</div>`).join("")
-    : "<p class='muted'>No public/shared items yet. Check share on a Seed, Tree, Moonflower, or Entry.</p>";
-}
-
 
 async function getTreeImageUrl(path) {
   if (!path) return null;
@@ -278,73 +275,174 @@ async function getTreeImageUrl(path) {
   return data.signedUrl;
 }
 
+function iconForSection(section) {
+  return {
+    garden: "🌿",
+    prompt_vault: "💧",
+    seeds: "🌱",
+    moonflowers: "🌙",
+    trees: "🌳",
+    greenhouse: "📖",
+    chimes: "🎵",
+    orchard: "🍎"
+  }[section] || "▣";
+}
+
+async function itemHTML(item, context = "own") {
+  const imageUrl = item.section === "trees" ? await getTreeImageUrl(item.image_url) : item.image_url;
+  const openCall = context === "visit" ? `openPostViewer('${item.id}', 'visit')` : `openPostViewer('${item.id}', 'own')`;
+  return `<div class="${item.section === "trees" ? "tree-card" : "item"}">
+    <strong>${iconForSection(item.section)} ${esc(item.title || item.mood || item.section.toUpperCase())}</strong>
+    ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
+    <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
+    ${imageUrl ? `<img class="${context === "visit" ? "visited-memory-photo" : "tree-memory-photo"}" src="${imageUrl}" alt="Uploaded memory image" onclick="${openCall}">` : ""}
+    ${item.body ? `<p>${esc(item.body).replaceAll("\n","<br>")}</p>` : ""}
+    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+    <button class="post-card-open" onclick="${openCall}">VIEW FULL SCREEN</button>
+    ${context === "own" ? `<button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
+    <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>` : ""}
+  </div>`;
+}
+
+async function renderSection(section, target, empty) {
+  const items = allItems.filter(i => i.section === section);
+  if (!items.length) {
+    $(target).innerHTML = `<p class="muted">${empty}</p>`;
+    return;
+  }
+  $(target).innerHTML = (await Promise.all(items.map(item => itemHTML(item)))).join("");
+}
+
+function renderPublicMockFeed() {
+  const feed = $("publicMockFeed");
+  if (!feed) return;
+  const shared = allItems.filter(i => i.is_shared);
+  feed.innerHTML = shared.length
+    ? shared.map(item => `<div class="item"><strong>@${esc(currentProfile?.username || "you")} shared ${esc(item.section)}</strong><p>${esc(item.title || item.mood || "Public item")}</p></div>`).join("")
+    : "<p class='muted'>No public/shared items yet.</p>";
+}
+
 async function renderTrees() {
   const items = allItems.filter(i => i.section === "trees");
+  if ($("treeStats")) $("treeStats").textContent = `MEMORIES: ${items.length} // SHARED: ${items.filter(i => i.is_shared).length}`;
 
   if (!items.length) {
     $("treeList").innerHTML = "<p class='muted'>NO MEMORY TREES PLANTED YET.</p>";
     return;
   }
 
-  const cards = await Promise.all(items.map(async item => {
-    const imageUrl = await getTreeImageUrl(item.image_url);
-
-    return `<div class="tree-card">
-      <strong>${esc(item.title || "MEMORY TREE")}</strong>
-      ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
-      <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-      ${imageUrl ? `<img class="tree-memory-photo" src="${imageUrl}" alt="Uploaded memory image" onclick="openMemoryViewer('${item.id}')">` : ""}
-      ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
-      ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-      ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-      <button onclick="toggleShare('${item.id}', ${item.is_shared})">${item.is_shared ? "MAKE PRIVATE" : "SHARE"}</button>
-      <button onclick="deleteCloudItem('${item.id}')">REMOVE</button>
-    </div>`;
-  }));
-
-  $("treeList").innerHTML = cards.join("");
+  $("treeList").innerHTML = (await Promise.all(items.map(item => itemHTML(item)))).join("");
 }
 
-async function openMemoryViewer(id) {
-  const item = allItems.find(i => i.id === id);
+function itemPool(context) {
+  return context === "visit" ? currentVisitedItems : allItems;
+}
+
+async function openPostViewer(id, context = "own") {
+  const pool = itemPool(context);
+  const item = pool.find(i => i.id === id);
   if (!item) return;
 
-  const imageUrl = await getTreeImageUrl(item.image_url);
+  viewerItems = pool;
+  viewerIndex = Math.max(0, pool.findIndex(i => i.id === id));
 
-  $("memoryViewerUser").textContent = "@" + (currentProfile?.username || "you");
-  $("memoryViewerTitle").textContent = item.title || "MEMORY TREE";
-  $("memoryViewerDate").textContent = new Date(item.created_at).toLocaleString();
+  const imageUrl = item.section === "trees" ? await getTreeImageUrl(item.image_url) : item.image_url;
 
-  $("memoryViewerImage").src = imageUrl || "";
-  $("memoryViewerImage").style.display = imageUrl ? "block" : "none";
+  $("postViewerUser").textContent = context === "visit"
+    ? "@" + (currentVisitedFriend?.username || "friend")
+    : "@" + (currentProfile?.username || "you");
 
-  $("memoryViewerText").innerHTML = `
-    ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
-    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+  $("postViewerTitle").textContent = item.title || item.mood || item.section.toUpperCase();
+  $("postViewerDate").textContent = new Date(item.created_at).toLocaleString();
+  $("postViewerPrivacy").textContent = item.is_shared ? "PUBLIC MODE: ON 🌐" : "PRIVATE MODE: ON 🔒";
+  $("postViewerCounter").textContent = viewerItems.length ? `${viewerIndex + 1} / ${viewerItems.length}` : "";
+
+  $("postViewerMeta").innerHTML = `
+    <div class="post-meta-block"><strong>SECTION:</strong><br>${esc(item.section)}</div>
+    ${item.mood ? `<div class="post-meta-block"><strong>MOOD:</strong><br>${esc(item.mood)}</div>` : ""}
+    ${item.prompt ? `<div class="post-meta-block"><strong>PROMPT:</strong><br>${esc(item.prompt)}</div>` : ""}
+    ${item.song ? `<div class="post-meta-block"><strong>SONG:</strong><br>${esc(item.song)}</div>` : ""}
+    ${item.people ? `<div class="post-meta-block"><strong>PEOPLE:</strong><br>${esc(item.people)}</div>` : ""}
+    ${item.body ? `<div class="post-meta-block"><strong>DESCRIPTION:</strong><br>${esc(item.body)}</div>` : ""}
   `;
 
-  $("memoryViewer").classList.remove("hidden");
+  if (imageUrl) {
+    $("postViewerImage").src = imageUrl;
+    $("postViewerImage").classList.remove("hidden");
+    $("postViewerNoImage").classList.add("hidden");
+  } else {
+    $("postViewerImage").src = "";
+    $("postViewerImage").classList.add("hidden");
+    $("postViewerNoImage").classList.remove("hidden");
+  }
+
+  $("postViewer").classList.remove("hidden");
+  sfx("open");
 }
 
-function closeMemoryViewer() {
-  $("memoryViewer").classList.add("hidden");
+function closePostViewer() {
+  $("postViewer").classList.add("hidden");
+  sfx("close");
+}
+
+async function stepViewer(delta) {
+  if (!viewerItems.length) return;
+  viewerIndex = (viewerIndex + delta + viewerItems.length) % viewerItems.length;
+  await openPostViewer(viewerItems[viewerIndex].id, currentVisitedFriend ? "visit" : "own");
+}
+
+function togglePostFullscreen() {
+  $("postViewerWindow").classList.toggle("fullscreen");
+}
+
+function setupDrag() {
+  const win = $("postViewerWindow");
+  const header = $("postViewerHeader");
+  if (!win || !header) return;
+
+  let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+  header.addEventListener("mousedown", e => {
+    if (e.target.closest("button")) return;
+    dragging = true;
+    win.classList.remove("fullscreen");
+    const rect = win.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    win.style.left = startLeft + "px";
+    win.style.top = startTop + "px";
+    win.style.right = "auto";
+    win.style.bottom = "auto";
+    document.body.style.userSelect = "none";
+  });
+
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    win.style.left = (startLeft + e.clientX - startX) + "px";
+    win.style.top = (startTop + e.clientY - startY) + "px";
+  });
+
+  window.addEventListener("mouseup", () => {
+    dragging = false;
+    document.body.style.userSelect = "";
+  });
 }
 
 async function renderAll() {
-  renderSection("garden", "gardenEntries", "NO GARDEN ENTRIES YET.");
-  renderSection("prompt_vault", "promptVault", "NO SAVED PROMPTS.");
-  renderSection("seeds", "seedBank", "NO SEEDS SAVED YET.");
-  renderSection("moonflowers", "dreamList", "NO DREAMS SAVED YET.");
-
+  await renderSection("garden", "gardenEntries", "NO GARDEN ENTRIES YET.");
+  await renderSection("prompt_vault", "promptVault", "NO SAVED PROMPTS.");
+  await renderSection("seeds", "seedBank", "NO SEEDS SAVED YET.");
+  await renderSection("moonflowers", "dreamList", "NO DREAMS SAVED YET.");
   await renderTrees();
-
-  renderSection("greenhouse", "greenhouseList", "GREENHOUSE IS EMPTY.");
-  renderSection("chimes", "songList", "NO WIND CHIMES YET.");
-  renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
+  await renderSection("greenhouse", "greenhouseList", "GREENHOUSE IS EMPTY.");
+  await renderSection("chimes", "songList", "NO WIND CHIMES YET.");
+  await renderSection("orchard", "projectList", "NO PROJECT TREES YET.");
   renderPublicMockFeed();
-  
 }
+
 function newPrompt() {
   const c = promptBank[$("promptType").value];
   $("promptLabel").textContent = c.label;
@@ -352,7 +450,6 @@ function newPrompt() {
   currentPrompt = $("promptText").textContent;
   $("sidebarPrompt").innerHTML = `<em>${esc(currentPrompt)}</em>`;
   setStatus("💧 watering prompt...");
-
 }
 
 function usePrompt(prompt, category) {
@@ -371,6 +468,10 @@ $("logoutBtn").addEventListener("click", logout);
 $("saveProfileBtn").addEventListener("click", saveProfile);
 $("searchFriendBtn").addEventListener("click", searchFriend);
 
+$("viewerCloseBtn").addEventListener("click", closePostViewer);
+$("viewerFullBtn").addEventListener("click", togglePostFullscreen);
+$("viewerMinimizeBtn").addEventListener("click", closePostViewer);
+
 $("saveGardenEntry").onclick = () => {
   const body = $("gardenEntry").value.trim();
   if (!body) return alert("Write something first.");
@@ -388,8 +489,22 @@ $("promptType").onchange = newPrompt;
 $("savePrompt").onclick = () => addCloudItem({ section: "prompt_vault", title: $("promptLabel").textContent, prompt: $("promptText").textContent, is_shared: false });
 $("sendPromptToGarden").onclick = () => usePrompt($("promptText").textContent, $("promptLabel").textContent);
 
-$("saveSeed").onclick = () => { const body = $("seedText").value.trim(); if (!body) return alert("Drop a seed first."); addCloudItem({ section: "seeds", title: "SEED", body, is_shared: $("shareSeed").checked }); $("seedText").value = ""; $("shareSeed").checked = false; };
-$("saveDream").onclick = () => { const body = $("dreamText").value.trim(); if (!body) return alert("Write the dream first."); addCloudItem({ section: "moonflowers", title: $("dreamTitle").value.trim() || "MOONFLOWER", body, is_shared: $("shareDream").checked }); $("dreamTitle").value = ""; $("dreamText").value = ""; $("shareDream").checked = false; };
+$("saveSeed").onclick = () => {
+  const body = $("seedText").value.trim();
+  if (!body) return alert("Drop a seed first.");
+  addCloudItem({ section: "seeds", title: "SEED", body, is_shared: $("shareSeed").checked });
+  $("seedText").value = "";
+  $("shareSeed").checked = false;
+};
+
+$("saveDream").onclick = () => {
+  const body = $("dreamText").value.trim();
+  if (!body) return alert("Write the dream first.");
+  addCloudItem({ section: "moonflowers", title: $("dreamTitle").value.trim() || "MOONFLOWER", body, is_shared: $("shareDream").checked });
+  $("dreamTitle").value = "";
+  $("dreamText").value = "";
+  $("shareDream").checked = false;
+};
 
 async function uploadTreePhoto(file) {
   if (!file) return null;
@@ -404,10 +519,7 @@ async function uploadTreePhoto(file) {
       upsert: false
     });
 
-  if (uploadError) {
-    throw uploadError;
-  }
-
+  if (uploadError) throw uploadError;
   return filePath;
 }
 
@@ -443,11 +555,35 @@ $("saveTree").onclick = async () => {
     $("treeUploadStatus").textContent = "Tree upload error: " + error.message;
   }
 };
-$("saveGreenhouse").onclick = () => { const body = $("greenText").value.trim(); if (!body) return alert("Write something first."); addCloudItem({ section: "greenhouse", title: $("greenTitle").value.trim() || "GREENHOUSE PIECE", body, is_shared: $("shareGreenhouse").checked }); $("greenTitle").value = ""; $("greenText").value = ""; $("shareGreenhouse").checked = false; };
-$("saveSong").onclick = () => { const title = $("songTitle").value.trim(); if (!title) return alert("Add a song title first."); addCloudItem({ section: "chimes", title, body: $("songArtist").value.trim() + "\n" + $("songVibe").value.trim(), is_shared: $("shareSong").checked }); $("songTitle").value = ""; $("songArtist").value = ""; $("songVibe").value = ""; $("shareSong").checked = false; };
-$("saveProject").onclick = () => { const body = $("projectText").value.trim(); const title = $("projectTitle").value.trim() || "PROJECT TREE"; if (!body && !title) return alert("Plant something first."); addCloudItem({ section: "orchard", title, body, is_shared: $("shareProject").checked }); $("projectTitle").value = ""; $("projectText").value = ""; $("shareProject").checked = false; };
 
+$("saveGreenhouse").onclick = () => {
+  const body = $("greenText").value.trim();
+  if (!body) return alert("Write something first.");
+  addCloudItem({ section: "greenhouse", title: $("greenTitle").value.trim() || "GREENHOUSE PIECE", body, is_shared: $("shareGreenhouse").checked });
+  $("greenTitle").value = "";
+  $("greenText").value = "";
+  $("shareGreenhouse").checked = false;
+};
 
+$("saveSong").onclick = () => {
+  const title = $("songTitle").value.trim();
+  if (!title) return alert("Add a song title first.");
+  addCloudItem({ section: "chimes", title, body: $("songArtist").value.trim() + "\n" + $("songVibe").value.trim(), is_shared: $("shareSong").checked });
+  $("songTitle").value = "";
+  $("songArtist").value = "";
+  $("songVibe").value = "";
+  $("shareSong").checked = false;
+};
+
+$("saveProject").onclick = () => {
+  const body = $("projectText").value.trim();
+  const title = $("projectTitle").value.trim() || "PROJECT TREE";
+  if (!body && !title) return alert("Plant something first.");
+  addCloudItem({ section: "orchard", title, body, is_shared: $("shareProject").checked });
+  $("projectTitle").value = "";
+  $("projectText").value = "";
+  $("shareProject").checked = false;
+};
 
 async function searchFriend() {
   const term = $("friendSearchInput").value.trim().replace(/^@/, "").toLowerCase();
@@ -489,11 +625,7 @@ async function sendFriendRequest(receiverId) {
     .insert({ sender_id: currentUser.id, receiver_id: receiverId, status: "pending" });
 
   if (error) {
-    if (error.message.includes("duplicate") || error.message.includes("unique")) {
-      alert("Friendship already planted or pending.");
-    } else {
-      alert("Friend request error: " + error.message);
-    }
+    alert(error.message.includes("duplicate") || error.message.includes("unique") ? "Friendship already planted or pending." : "Friend request error: " + error.message);
     return;
   }
 
@@ -510,10 +642,7 @@ async function loadFriends() {
     .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.warn("Friend load error:", error.message);
-    return;
-  }
+  if (error) return;
 
   const rows = data || [];
   const ids = [...new Set(rows.flatMap(r => [r.sender_id, r.receiver_id]).filter(id => id !== currentUser.id))];
@@ -617,10 +746,10 @@ async function visitGarden(friendId, username) {
   }
 
   currentVisitedItems = data || [];
-  renderVisitedGarden("all");
+  await renderVisitedGarden("all");
 }
 
-function renderVisitedGarden(filter = "all") {
+async function renderVisitedGarden(filter = "all") {
   if (!currentVisitedFriend) {
     $("visitedGardenItems").innerHTML = "<p class='muted'>Select a friend to visit their garden.</p>";
     return;
@@ -652,16 +781,7 @@ function renderVisitedGarden(filter = "all") {
   `;
 
   $("visitedGardenItems").innerHTML = visible.length
-    ? visible.map(item => `<div class="visited-item">
-        <strong>${esc(item.title || item.mood || item.section)}</strong>
-        <span class="shared-badge">${esc(item.section).toUpperCase()}</span>
-        <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
-        ${item.image_url ? `<img src="${item.image_url}" alt="Shared garden image">` : ""}
-        ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
-        ${item.body ? `<p>${esc(item.body).replaceAll("\\n","<br>")}</p>` : ""}
-        ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
-        ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
-      </div>`).join("")
+    ? (await Promise.all(visible.map(item => itemHTML(item, "visit")))).join("")
     : `<p class='muted'>No ${filter === "all" ? "public items" : filter} shared yet.</p>`;
 }
 
@@ -672,10 +792,12 @@ $("applyTheme").onclick = () => {
   document.documentElement.style.setProperty("--muted", color + "99");
   localStorage.setItem("gt_theme", color);
 };
+
 $("themeColor").oninput = () => $("hexColor").value = $("themeColor").value;
 $("resetTheme").onclick = () => { localStorage.removeItem("gt_theme"); location.reload(); };
 
 function updateClock() { $("clock").textContent = new Date().toLocaleString(); }
+
 const savedTheme = localStorage.getItem("gt_theme");
 if (savedTheme) {
   document.documentElement.style.setProperty("--text", savedTheme);
@@ -685,6 +807,7 @@ if (savedTheme) {
   $("hexColor").value = savedTheme;
 }
 
+setupDrag();
 newPrompt();
 updateClock();
 setInterval(updateClock, 1000);

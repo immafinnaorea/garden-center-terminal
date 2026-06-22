@@ -1,8 +1,9 @@
 {
   "name": "The Garden Terminal",
-  "short_name": "Garden",
-  "start_url": "index.html",
+  "short_name": "Garden Terminal",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000600",
-  "theme_color": "#001100"
+  "background_color": "#000000",
+  "theme_color": "#7cff7c",
+  "icons": []
 }
