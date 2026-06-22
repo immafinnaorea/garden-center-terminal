@@ -247,15 +247,6 @@ async function uploadProjectImage(projectId) {
     alert("Project image upload error: " + uploadError.message);
     return;
   }
-
- const { data: newImage, error: insertError } = await supabaseClient
-  .from("project_images")
-  .insert({
-    project_id: projectId,
-    user_id: currentUser.id,
-    image_path: filePath,
-    caption
-  })
   
 const { data: newImage, error: insertError } = await supabaseClient
   .from("project_images")
