@@ -35,7 +35,7 @@
     <header class="titlebar">
       <div>
         <span class="title">THE GARDEN TERMINAL</span>
-        <span class="subtitle">cloud synced // private garden // v0.6</span>
+        <span class="subtitle">cloud synced // private garden // v0.7.1</span>
       </div>
       <div class="user-box">
         <span id="userHandle"></span>
@@ -63,6 +63,40 @@
           <button class="nav" data-section="community">👥 COMMUNITY</button>
           <button class="nav" data-section="settings">⚙ SETTINGS</button>
         </nav>
+
+        <div class="moose-box">
+          <div class="moose-box-header">
+            <strong>MOOSE COMPANION</strong>
+            <span class="muted">grazing loop</span>
+          </div>
+
+          <div class="moose-scene" aria-label="8-bit moose eating grass">
+            <div class="moon-pixel"></div>
+            <div class="grass-line"></div>
+            <div class="grass-clump grass-left"></div>
+            <div class="grass-clump grass-right"></div>
+
+            <div id="pixelMoose" class="pixel-moose" aria-hidden="true">
+              <div class="moose-shadow"></div>
+              <div class="moose-body"></div>
+              <div class="moose-belly"></div>
+              <div class="moose-hump"></div>
+              <div class="moose-neck"></div>
+              <div class="moose-head"></div>
+              <div class="moose-snout"></div>
+              <div class="moose-ear"></div>
+              <div class="moose-antler antler-back"></div>
+              <div class="moose-antler antler-front"></div>
+              <div class="moose-leg leg-one"></div>
+              <div class="moose-leg leg-two"></div>
+              <div class="moose-leg leg-three"></div>
+              <div class="moose-leg leg-four"></div>
+              <div class="moose-tail"></div>
+            </div>
+          </div>
+
+          <p class="muted moose-caption">press M to toggle graze crunch</p>
+        </div>
       </aside>
 
       <main class="workspace">
@@ -330,7 +364,30 @@
       </aside>
     </div>
 
-    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.6 social garden</span></footer>
+
+    <div id="memoryViewer" class="memory-viewer hidden">
+      <div id="memoryViewerHeader" class="memory-viewer-header">
+        <span id="memoryViewerUser">@user</span>
+        <div class="memory-window-buttons">
+          <button type="button">_</button>
+          <button type="button">□</button>
+          <button type="button" onclick="closeMemoryViewer()">x</button>
+        </div>
+      </div>
+
+      <div class="memory-viewer-body">
+        <div class="memory-viewer-meta">
+          <span id="memoryViewerTitle">MEMORY TREE</span>
+          <span id="memoryViewerDate"></span>
+        </div>
+
+        <img id="memoryViewerImage" alt="Opened memory image" />
+
+        <div id="memoryViewerText" class="memory-viewer-text"></div>
+      </div>
+    </div>
+
+    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.7.1 moose polish</span></footer>
   </div>
 
   <script src="script.js"></script>

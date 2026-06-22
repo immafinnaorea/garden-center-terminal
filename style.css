@@ -39,3 +39,484 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
 .visited-item img{width:100%;max-width:420px;max-height:300px;object-fit:cover;border:1px solid var(--line);display:block;margin:10px 0}
 .sidebar-friend-button{background:transparent;border:none;color:var(--text);font-family:inherit;cursor:pointer;text-align:left;padding:0}
 .sidebar-friend-button:hover{text-decoration:underline}
+
+
+/* ===== V7 RESTORED TREE PHOTOS + POPUP VIEWER ===== */
+
+.titlebar .subtitle::after {
+  content: " // memory grove restored";
+}
+
+.tree-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+.tree-card {
+  border: 2px solid var(--line);
+  background: rgba(0,0,0,.82);
+  padding: 12px;
+  min-height: 260px;
+  box-shadow: 0 0 18px rgba(124,255,124,.08);
+}
+
+.tree-card img,
+.tree-memory-photo,
+.visited-item img {
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  display: block;
+  margin: 10px 0 12px;
+  cursor: pointer;
+  background: #000;
+}
+
+.tree-card img:hover,
+.tree-memory-photo:hover,
+.visited-item img:hover {
+  filter: brightness(1.2);
+}
+
+.memory-viewer {
+  position: fixed;
+  right: 58px;
+  bottom: 58px;
+  width: min(620px, 90vw);
+  max-height: 82vh;
+  background: #000;
+  border: 2px solid var(--line);
+  z-index: 9999;
+  overflow: hidden;
+  box-shadow: 0 0 35px rgba(124,255,124,.22);
+}
+
+.memory-viewer.hidden {
+  display: none;
+}
+
+.memory-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--line);
+  background: #000;
+  cursor: move;
+}
+
+.memory-window-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.memory-window-buttons button {
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  line-height: 1;
+}
+
+.memory-viewer-body {
+  overflow-y: auto;
+  max-height: calc(82vh - 42px);
+}
+
+.memory-viewer-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.memory-viewer img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #000;
+}
+
+.memory-viewer-text {
+  padding: 12px;
+  white-space: pre-wrap;
+  border-top: 1px solid var(--line);
+}
+
+/* 8-bit moose companion */
+.moose-box {
+  border: 1px solid var(--line);
+  margin-top: 18px;
+  padding: 12px;
+  background: rgba(0,0,0,.65);
+}
+
+.moose-scene {
+  height: 96px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  margin-top: 10px;
+}
+
+.pixel-moose {
+  position: absolute;
+  left: 52px;
+  bottom: 16px;
+  width: 130px;
+  height: 64px;
+}
+
+.pixel-moose div {
+  position: absolute;
+  background: #8b6a3e;
+  image-rendering: pixelated;
+}
+
+.pixel-moose .body {
+  left: 20px;
+  top: 24px;
+  width: 60px;
+  height: 26px;
+  box-shadow: 0 0 0 2px #5b3a22 inset;
+}
+
+.pixel-moose .neck {
+  left: 74px;
+  top: 16px;
+  width: 16px;
+  height: 30px;
+  transform: skewX(-10deg);
+}
+
+.pixel-moose .head {
+  left: 86px;
+  top: 12px;
+  width: 30px;
+  height: 18px;
+  animation: graze 2.4s steps(2,end) infinite;
+}
+
+.pixel-moose .nose {
+  left: 108px;
+  top: 21px;
+  width: 14px;
+  height: 9px;
+  animation: grazeNose 2.4s steps(2,end) infinite;
+}
+
+.pixel-moose .leg {
+  top: 48px;
+  width: 8px;
+  height: 24px;
+}
+
+.pixel-moose .l1 { left: 28px; }
+.pixel-moose .l2 { left: 44px; }
+.pixel-moose .l3 { left: 64px; }
+.pixel-moose .l4 { left: 78px; }
+
+.pixel-moose .antlers {
+  left: 88px;
+  top: -4px;
+  width: 30px;
+  height: 14px;
+  background: transparent;
+  border-top: 4px solid #c9aa68;
+  border-left: 4px solid #c9aa68;
+  border-right: 4px solid #c9aa68;
+}
+
+.grass {
+  position: absolute;
+  bottom: 8px;
+  height: 22px;
+  width: 75px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 6px,
+    var(--line) 7px 9px,
+    transparent 10px 14px
+  );
+}
+
+.grass-a { left: 18px; }
+.grass-b { right: 20px; }
+
+@keyframes graze {
+  0%, 45% { top: 12px; transform: rotate(0); }
+  50%, 100% { top: 27px; transform: rotate(18deg); }
+}
+
+@keyframes grazeNose {
+  0%, 45% { top: 21px; }
+  50%, 100% { top: 40px; }
+}
+
+@media(max-width: 650px) {
+  .memory-viewer {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+  }
+}
+
+
+/* ===== V7.1 POLISHED MOOSE COMPANION ===== */
+
+.moose-box {
+  border: 1px solid var(--line);
+  margin-top: 18px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 70% 18%, rgba(124,255,124,.08), transparent 22%),
+    rgba(0,0,0,.72);
+}
+
+.moose-box-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.moose-scene {
+  height: 126px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(124,255,124,.05), transparent 58%),
+    #000;
+  image-rendering: pixelated;
+}
+
+.moon-pixel {
+  position: absolute;
+  right: 18px;
+  top: 13px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  box-shadow: 0 0 14px rgba(124,255,124,.25);
+}
+
+.grass-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: 2px;
+  background: var(--line);
+  opacity: .85;
+}
+
+.grass-clump {
+  position: absolute;
+  bottom: 20px;
+  width: 86px;
+  height: 28px;
+  background:
+    linear-gradient(80deg, transparent 0 8%, var(--line) 9% 12%, transparent 13% 20%, var(--line) 21% 25%, transparent 26% 33%, var(--line) 34% 38%, transparent 39% 100%),
+    linear-gradient(100deg, transparent 0 18%, var(--line) 19% 22%, transparent 23% 45%, var(--line) 46% 50%, transparent 51% 100%);
+  opacity: .9;
+}
+
+.grass-left { left: 18px; }
+.grass-right { right: 30px; }
+
+.pixel-moose {
+  position: absolute;
+  left: 45px;
+  bottom: 20px;
+  width: 166px;
+  height: 82px;
+  transform: scale(.92);
+  transform-origin: bottom left;
+  image-rendering: pixelated;
+}
+
+.pixel-moose > div {
+  position: absolute;
+  image-rendering: pixelated;
+}
+
+.moose-shadow {
+  left: 18px;
+  bottom: -4px;
+  width: 125px;
+  height: 8px;
+  background: rgba(124,255,124,.14);
+}
+
+.moose-body {
+  left: 28px;
+  top: 34px;
+  width: 78px;
+  height: 31px;
+  background: #8b6a3e;
+  box-shadow:
+    inset 0 -6px 0 #5b3a22,
+    inset 8px 0 0 #a47a45,
+    0 0 0 2px #241708;
+}
+
+.moose-belly {
+  left: 43px;
+  top: 57px;
+  width: 42px;
+  height: 8px;
+  background: #c09a5b;
+}
+
+.moose-hump {
+  left: 32px;
+  top: 25px;
+  width: 37px;
+  height: 18px;
+  background: #75512f;
+  box-shadow: 0 0 0 2px #241708;
+}
+
+.moose-neck {
+  left: 99px;
+  top: 27px;
+  width: 20px;
+  height: 36px;
+  background: #7b5632;
+  transform: skewX(-13deg);
+  box-shadow: 0 0 0 2px #241708;
+}
+
+.moose-head {
+  left: 114px;
+  top: 21px;
+  width: 34px;
+  height: 20px;
+  background: #9b7140;
+  box-shadow:
+    inset 0 -5px 0 #6b4528,
+    0 0 0 2px #241708;
+  animation: polishedGrazeHead 2.6s steps(4,end) infinite;
+}
+
+.moose-snout {
+  left: 141px;
+  top: 31px;
+  width: 19px;
+  height: 11px;
+  background: #c29a62;
+  box-shadow: 0 0 0 2px #241708;
+  animation: polishedGrazeSnout 2.6s steps(4,end) infinite;
+}
+
+.moose-ear {
+  left: 113px;
+  top: 15px;
+  width: 10px;
+  height: 11px;
+  background: #8b6a3e;
+  box-shadow: 0 0 0 2px #241708;
+  transform: rotate(-14deg);
+  animation: polishedGrazeEar 2.6s steps(4,end) infinite;
+}
+
+.moose-antler {
+  background: transparent !important;
+  border-color: #d5b678;
+  border-style: solid;
+  animation: polishedGrazeAntler 2.6s steps(4,end) infinite;
+}
+
+.antler-front {
+  left: 126px;
+  top: 2px;
+  width: 27px;
+  height: 19px;
+  border-width: 4px 4px 0 4px;
+}
+
+.antler-front::before,
+.antler-front::after,
+.antler-back::before,
+.antler-back::after {
+  content: "";
+  position: absolute;
+  background: #d5b678;
+  width: 4px;
+  height: 12px;
+  top: -9px;
+}
+
+.antler-front::before { left: 3px; }
+.antler-front::after { right: 4px; }
+
+.antler-back {
+  left: 112px;
+  top: 5px;
+  width: 22px;
+  height: 15px;
+  border-width: 4px 0 0 4px;
+  opacity: .78;
+}
+
+.antler-back::before { left: 1px; }
+.antler-back::after { right: 1px; height: 8px; }
+
+.moose-leg {
+  top: 62px;
+  width: 10px;
+  height: 25px;
+  background: #5b3a22;
+  box-shadow: 0 0 0 2px #241708;
+}
+
+.leg-one { left: 36px; }
+.leg-two { left: 55px; height: 22px; }
+.leg-three { left: 84px; }
+.leg-four { left: 100px; height: 22px; }
+
+.moose-tail {
+  left: 20px;
+  top: 39px;
+  width: 10px;
+  height: 9px;
+  background: #75512f;
+  box-shadow: 0 0 0 2px #241708;
+}
+
+.moose-caption {
+  font-size: .78rem;
+  margin-bottom: 0;
+}
+
+@keyframes polishedGrazeHead {
+  0%, 38% { top: 21px; transform: rotate(0); }
+  46%, 82% { top: 38px; transform: rotate(17deg); }
+  90%, 100% { top: 21px; transform: rotate(0); }
+}
+
+@keyframes polishedGrazeSnout {
+  0%, 38% { top: 31px; }
+  46%, 82% { top: 55px; }
+  90%, 100% { top: 31px; }
+}
+
+@keyframes polishedGrazeEar {
+  0%, 38% { top: 15px; }
+  46%, 82% { top: 32px; }
+  90%, 100% { top: 15px; }
+}
+
+@keyframes polishedGrazeAntler {
+  0%, 38% { transform: translateY(0) rotate(0); }
+  46%, 82% { transform: translateY(17px) rotate(17deg); }
+  90%, 100% { transform: translateY(0) rotate(0); }
+}
