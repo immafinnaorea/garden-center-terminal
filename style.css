@@ -106,3 +106,6 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
   padding: 12px;
   white-space: pre-wrap;
 }
+.tree-memory-photo {
+  cursor: pointer;
+}
