@@ -942,3 +942,13 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
 .memory-viewer-text p {
   margin: 0 0 12px;
 }
+.project-file-card {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+  background: #000;
+  font-weight: bold;
+}
