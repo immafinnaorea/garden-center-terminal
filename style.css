@@ -39,3 +39,70 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
 .visited-item img{width:100%;max-width:420px;max-height:300px;object-fit:cover;border:1px solid var(--line);display:block;margin:10px 0}
 .sidebar-friend-button{background:transparent;border:none;color:var(--text);font-family:inherit;cursor:pointer;text-align:left;padding:0}
 .sidebar-friend-button:hover{text-decoration:underline}
+.memory-viewer {
+  position: fixed;
+  right: 60px;
+  bottom: 60px;
+
+  width: 340px;
+  max-height: 80vh;
+
+  background: #000;
+  border: 2px solid var(--line);
+
+  z-index: 9999;
+  overflow: hidden;
+
+  box-shadow: 0 0 20px rgba(124,255,124,.15);
+}
+
+.memory-viewer.hidden {
+  display: none;
+}
+
+.memory-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px 12px;
+
+  border-bottom: 2px solid var(--line);
+
+  cursor: move;
+}
+
+.memory-window-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.memory-window-buttons button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+}
+
+.memory-viewer-body {
+  overflow-y: auto;
+  max-height: calc(80vh - 40px);
+}
+
+.memory-viewer-meta {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.memory-viewer-meta span {
+  display: block;
+}
+
+.memory-viewer img {
+  width: 100%;
+  display: block;
+}
+
+.memory-viewer-text {
+  padding: 12px;
+  white-space: pre-wrap;
+}
