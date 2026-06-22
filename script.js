@@ -634,8 +634,10 @@ return `<div class="project-board-card image-card">
   ${url && isPreviewImage
     ? `<img src="${url}" alt="Project board image">`
     : url && isPdf
-      ? `<a class="project-file-card" href="${url}" target="_blank">📄 OPEN PDF</a>`
-      : url
+? `<a class="project-file-card pdf-preview-card" href="${url}" target="_blank">
+    <iframe src="${url}#page=1&zoom=45" loading="lazy"></iframe>
+    <span>📄 OPEN PDF</span>
+  </a>`      : url
         ? `<a class="project-file-card" href="${url}" target="_blank">📎 OPEN FILE</a>`
         : `<p class="muted">File unavailable</p>`
   }
