@@ -926,6 +926,16 @@ $("saveProject").onclick = () => {
   $("shareProject").checked = false;
 };
 $("themeColor").oninput = () => $("hexColor").value = $("themeColor").value;
+$("applyTheme").onclick = () => {
+  const color = $("hexColor").value.trim() || $("themeColor").value;
+
+  document.documentElement.style.setProperty("--text", color);
+  document.documentElement.style.setProperty("--line", color);
+  document.documentElement.style.setProperty("--muted", color + "99");
+
+  localStorage.setItem("gt_theme", color);
+  setStatus("🎨 theme applied");
+};
 $("resetTheme").onclick = () => { localStorage.removeItem("gt_theme"); location.reload(); };
 
 function updateClock() { $("clock").textContent = new Date().toLocaleString(); }
