@@ -314,7 +314,11 @@ function closeMemoryViewer() {
   $("memoryViewer").classList.add("hidden");
 }
 
-                    
+function closeMemoryViewer() {
+  $("memoryViewer").classList.add("hidden");
+}
+
+async function renderAll() {                    
     return `<div class="tree-card">
       <strong>${esc(item.title || "MEMORY TREE")}</strong>
       ${item.is_shared ? `<span class="shared-badge">PUBLIC</span>` : `<span class="shared-badge">PRIVATE</span>`}
