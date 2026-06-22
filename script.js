@@ -265,8 +265,9 @@ async function uploadProjectImage(projectId) {
   fileInput.value = "";
   if (captionInput) captionInput.value = "";
 
-  await loadProjectImages();
-  await renderOrchard();
+await loadProjectImages();
+await renderAll();
+setStatus("📎 project board file added");
 }
 
 async function deleteProjectImage(imageId) {
@@ -279,9 +280,10 @@ async function deleteProjectImage(imageId) {
     alert("Project image delete error: " + error.message);
     return;
   }
+await loadProjectImages();
+await renderAll();
 
-  await loadProjectImages();
-  await renderOrchard();
+  
 }
 
 
