@@ -625,10 +625,19 @@ async function renderProjectBoard(item, project) {
   const savedImages = projectImagesByProject[item.id] || [];
 
   const savedCards = await Promise.all(savedImages.map(async img => {
-    const url = await getProjectImageUrl(img.image_path);
-    return `<div class="project-board-card image-card">
-      ${url ? `<img src="${url}" alt="Project board image">` : `<p class="muted">Image unavailable</p>`}
-      ${img.caption ? `<p>${esc(img.caption)}</p>` : ""}
+   const isPreviewImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(img.image_path);
+const isPdf = /\.pdf$/i.test(img.image_path);
+
+return `<div class="project-board-card image-card">
+  ${url && isPreviewImage
+    ? `<img src="${url}" alt="Project board image">`
+    : url && isPdf
+      ? `<a class="project-file-card" href="${url}" target="_blank">📄 OPEN PDF</a>`
+      : url
+        ? `<a class="project-file-card" href="${url}" target="_blank">📎 OPEN FILE</a>`
+        : `<p class="muted">File unavailable</p>`
+  }
+  ${img.caption ? `<p>${esc(img.caption)}</p>` : ""}
       <button class="tiny-button" onclick="deleteProjectImage('${img.id}')">REMOVE</button>
     </div>`;
   }));
