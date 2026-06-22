@@ -641,7 +641,7 @@ async function renderProjectBoard(item, project) {
   });
 
   const uploadControls = `<div class="project-board-uploader">
-    <input id="projectImageFile_${item.id}" type="file" accept="image/*">
+   <input id="projectImageFile_${item.id}" type="file" accept="image/*,.pdf,application/pdf,.heic,.heif">
     <input id="projectImageCaption_${item.id}" placeholder="Caption / reference note...">
     <button onclick="uploadProjectImage('${item.id}')">ADD IMAGE TO BOARD</button>
   </div>`;
