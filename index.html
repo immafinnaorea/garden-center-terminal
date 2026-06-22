@@ -35,7 +35,7 @@
     <header class="titlebar">
       <div>
         <span class="title">THE GARDEN TERMINAL</span>
-        <span class="subtitle">cloud synced // private garden // v0.7.1</span>
+        <span class="subtitle">cloud synced // private garden // v0.8.6 universal popout</span>
       </div>
       <div class="user-box">
         <span id="userHandle"></span>
@@ -44,15 +44,9 @@
       </div>
     </header>
 
-    <div class="main-layout">
-      <aside class="sidebar">
-        <div class="system-block">
-          <p>STATUS: CLOUD ROOTED</p>
-          <p id="clock">--:--</p>
-        </div>
 
-        <nav>
-          <button class="nav active" data-section="garden">🌿 THE GARDEN</button>
+    <nav class="top-nav">
+<button class="nav active" data-section="garden">🌿 THE GARDEN</button>
           <button class="nav" data-section="watering">💧 WATERING CAN</button>
           <button class="nav" data-section="seeds">🌱 THE SEEDS</button>
           <button class="nav" data-section="moonflowers">🌙 MOONFLOWERS</button>
@@ -62,40 +56,13 @@
           <button class="nav" data-section="orchard">🍎 ORCHARD</button>
           <button class="nav" data-section="community">👥 COMMUNITY</button>
           <button class="nav" data-section="settings">⚙ SETTINGS</button>
-        </nav>
+    </nav>
 
-        <div class="moose-box">
-          <div class="moose-box-header">
-            <strong>MOOSE COMPANION</strong>
-            <span class="muted">grazing loop</span>
-          </div>
-
-          <div class="moose-scene" aria-label="8-bit moose eating grass">
-            <div class="moon-pixel"></div>
-            <div class="grass-line"></div>
-            <div class="grass-clump grass-left"></div>
-            <div class="grass-clump grass-right"></div>
-
-            <div id="pixelMoose" class="pixel-moose" aria-hidden="true">
-              <div class="moose-shadow"></div>
-              <div class="moose-body"></div>
-              <div class="moose-belly"></div>
-              <div class="moose-hump"></div>
-              <div class="moose-neck"></div>
-              <div class="moose-head"></div>
-              <div class="moose-snout"></div>
-              <div class="moose-ear"></div>
-              <div class="moose-antler antler-back"></div>
-              <div class="moose-antler antler-front"></div>
-              <div class="moose-leg leg-one"></div>
-              <div class="moose-leg leg-two"></div>
-              <div class="moose-leg leg-three"></div>
-              <div class="moose-leg leg-four"></div>
-              <div class="moose-tail"></div>
-            </div>
-          </div>
-
-          <p class="muted moose-caption">press M to toggle graze crunch</p>
+    <div class="main-layout">
+      <aside class="sidebar">
+        <div class="system-block">
+          <p>STATUS: CLOUD ROOTED</p>
+          <p id="clock">--:--</p>
         </div>
       </aside>
 
@@ -197,7 +164,7 @@
           </div>
 
           <div class="panel">
-            <h2>PLANT A MEMORY TREE</h2>
+            <h2>PLANT A ARCHIVE ENTRY</h2>
 
             <label>Memory Name</label>
             <input id="treeTitle" placeholder="First apartment, Eleanor sleeping, Moving day..." />
@@ -252,15 +219,72 @@
         </section>
 
         <section id="orchard" class="section">
-          <div class="section-header"><h1>🍎 ORCHARD</h1><p>Long-term projects. Trees that may bear fruit later.</p></div>
-          <div class="panel">
-            <h2>NEW PROJECT TREE</h2>
-            <input id="projectTitle" placeholder="Project name..." />
-            <textarea id="projectText" placeholder="What is this project becoming?"></textarea>
-            <label class="share-row"><input id="shareProject" type="checkbox" /> Share this project publicly</label>
-            <button id="saveProject" class="primary">PLANT PROJECT</button>
+          <div class="section-header">
+            <h1>🍎 ORCHARD WORKSHOP</h1>
+            <p>Long-term projects, builds, moves, designs, and anything that needs a whole workbench instead of a note.</p>
           </div>
-          <div class="panel"><h2>ORCHARD ROWS</h2><div id="projectList"></div></div>
+
+          <div class="orchard-layout">
+            <div class="panel orchard-editor">
+              <h2>NEW PROJECT TREE</h2>
+
+              <label>Project Name</label>
+              <input id="projectTitle" placeholder="Garden Terminal, Weather Pocket PIP, Desk Build..." />
+
+              <label>Status</label>
+              <select id="projectStatus">
+                <option value="Seeded">Seeded</option>
+                <option value="Planning">Planning</option>
+                <option value="Building">Building</option>
+                <option value="Paused">Paused</option>
+                <option value="Finished">Finished</option>
+              </select>
+
+              <label>Target / Due Date</label>
+              <input id="projectDueDate" type="date" />
+
+              <label>Project Overview</label>
+              <textarea id="projectText" placeholder="What is this project becoming? What is the goal?"></textarea>
+
+              <label>Milestones</label>
+              <textarea id="projectMilestones" placeholder="One per line. Use x or - like:
+x Restore Tree Photos
+x Add Moose
+- Build Orchard Workshop
+- Add Project Image Boards"></textarea>
+
+              <label>Workshop Notes</label>
+              <textarea id="projectNotes" placeholder="Parts, materials, ideas, blockers, next steps..."></textarea>
+
+              <label>Reference / Image Board</label>
+              <textarea id="projectBoard" placeholder="Paste image links, reference ideas, materials, screenshots, Pinterest-board notes, etc. One per line."></textarea>
+
+              <label class="share-row">
+                <input id="shareProject" type="checkbox" />
+                Share this project publicly
+              </label>
+
+              <button id="saveProject" class="primary">PLANT PROJECT</button>
+            </div>
+
+            <div class="panel orchard-board-panel">
+              <div class="panel-title-row">
+                <h2>ORCHARD ROWS</h2>
+                <span id="orchardStats" class="muted"></span>
+              </div>
+
+              <div class="orchard-filters">
+                <button class="secondary orchard-filter active-filter" data-status="all">ALL</button>
+                <button class="secondary orchard-filter" data-status="Seeded">SEEDED</button>
+                <button class="secondary orchard-filter" data-status="Planning">PLANNING</button>
+                <button class="secondary orchard-filter" data-status="Building">BUILDING</button>
+                <button class="secondary orchard-filter" data-status="Paused">PAUSED</button>
+                <button class="secondary orchard-filter" data-status="Finished">FINISHED</button>
+              </div>
+
+              <div id="projectList" class="orchard-board"></div>
+            </div>
+          </div>
         </section>
 
         <section id="community" class="section">
@@ -331,6 +355,15 @@
             <button id="applyTheme" class="primary">APPLY COLOR</button>
             <button id="resetTheme" class="secondary">RESET GREEN</button>
           </div>
+
+          <div class="panel">
+            <h2>SOUND / COMPANION</h2>
+            <p class="muted">Moose crunch uses generated audio for now. Custom sound file support can come later.</p>
+            <label class="share-row"><input id="enableMooseSound" type="checkbox" checked /> Enable moose graze crunch</label>
+            <button id="testMooseSound" class="secondary">TEST MOOSE CRUNCH</button>
+            <p class="muted">Shortcut: press M to toggle moose sound.</p>
+          </div>
+
         </section>
       </main>
 
@@ -338,6 +371,19 @@
         <h2>COMMUNITY GARDEN</h2>
         <p class="scanline"></p>
         <p class="muted">Friend/social prototype. No comments yet.</p>
+
+
+        <div class="friend-card planner-card">
+          <div class="planner-header">
+            <strong>ORCHARD PLANNER</strong>
+            <span id="plannerRange" class="muted"></span>
+          </div>
+          <div id="sidebarCalendar" class="sidebar-calendar"></div>
+          <div class="upcoming-block">
+            <strong>UPCOMING</strong>
+            <div id="sidebarUpcoming"><p class="muted">No dated projects yet.</p></div>
+          </div>
+        </div>
 
         <div class="friend-card">
           <strong>FRIENDS</strong>
@@ -356,6 +402,42 @@
           <p class="muted">Future DM / message area. No comments, just private notes.</p>
           <button class="secondary" disabled>LEAVE NOTE SOON</button>
         </div>
+
+
+        <div class="moose-box moose-box-right">
+          <div class="moose-box-header">
+            <strong>MOOSE COMPANION</strong>
+            <span class="muted">grazing loop</span>
+          </div>
+
+          <div class="moose-scene" aria-label="8-bit moose eating grass">
+            <div class="moon-pixel"></div>
+            <div class="grass-line"></div>
+            <div class="grass-clump grass-left"></div>
+            <div class="grass-clump grass-right"></div>
+
+            <div id="pixelMoose" class="pixel-moose" aria-hidden="true">
+              <div class="moose-shadow"></div>
+              <div class="moose-body"></div>
+              <div class="moose-belly"></div>
+              <div class="moose-hump"></div>
+              <div class="moose-neck"></div>
+              <div class="moose-head"></div>
+              <div class="moose-snout"></div>
+              <div class="moose-ear"></div>
+              <div class="moose-antler antler-back"></div>
+              <div class="moose-antler antler-front"></div>
+              <div class="moose-leg leg-one"></div>
+              <div class="moose-leg leg-two"></div>
+              <div class="moose-leg leg-three"></div>
+              <div class="moose-leg leg-four"></div>
+              <div class="moose-tail"></div>
+            </div>
+          </div>
+
+          <p class="muted moose-caption">press M to toggle graze crunch</p>
+        </div>
+
 
         <div class="friend-card">
           <strong>PRIVACY</strong>
@@ -377,7 +459,7 @@
 
       <div class="memory-viewer-body">
         <div class="memory-viewer-meta">
-          <span id="memoryViewerTitle">MEMORY TREE</span>
+          <span id="memoryViewerTitle">ARCHIVE ENTRY</span>
           <span id="memoryViewerDate"></span>
         </div>
 
@@ -387,7 +469,7 @@
       </div>
     </div>
 
-    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.7.1 moose polish</span></footer>
+    <footer class="statusbar"><span>THE GARDEN TERMINAL // SUPABASE CLOUD</span><span>v0.8.6 universal popout</span></footer>
   </div>
 
   <script src="script.js"></script>

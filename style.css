@@ -520,3 +520,425 @@ input,textarea,select{width:100%;background:#000;color:var(--text);border:2px so
   46%, 82% { transform: translateY(17px) rotate(17deg); }
   90%, 100% { transform: translateY(0) rotate(0); }
 }
+
+
+/* ===== V7.1 TOP NAV TEST LAYOUT ===== */
+
+.top-nav {
+  border-left: 2px solid var(--line);
+  border-right: 2px solid var(--line);
+  border-bottom: 2px solid var(--line);
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(0, 15, 0, 0.72);
+}
+
+.top-nav .nav {
+  border: 1px solid transparent;
+  min-width: auto;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.top-nav .nav.active,
+.top-nav .nav:hover {
+  border-color: var(--line);
+  background: rgba(124,255,124,.12);
+}
+
+.main-layout {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+.sidebar {
+  display: none;
+}
+
+.friends-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.moose-box-right {
+  margin-top: auto;
+  margin-bottom: 14px;
+}
+
+.moose-box-right .moose-scene {
+  height: 132px;
+}
+
+.moose-box-right .pixel-moose {
+  left: 58px;
+  bottom: 22px;
+  transform: scale(.88);
+}
+
+@media(max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .friends-panel {
+    display: block;
+  }
+
+  .top-nav {
+    justify-content: center;
+  }
+}
+
+@media(max-width: 650px) {
+  .top-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .top-nav .nav {
+    width: 100%;
+  }
+}
+
+
+/* ===== V8 ORCHARD WORKSHOP ===== */
+
+.orchard-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.orchard-editor textarea {
+  min-height: 100px;
+}
+
+.orchard-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+.orchard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+
+.orchard-filter.active-filter {
+  background: var(--line);
+  color: #001100;
+}
+
+.orchard-card {
+  border: 2px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(124,255,124,.055), transparent 35%),
+    rgba(0,0,0,.82);
+  padding: 14px;
+  min-height: 260px;
+  box-shadow: 0 0 18px rgba(124,255,124,.08);
+}
+
+.orchard-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: start;
+}
+
+.status-chip {
+  border: 1px solid var(--line);
+  padding: 3px 7px;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+
+.status-seeded { opacity: .8; }
+.status-planning { box-shadow: inset 0 0 10px rgba(124,255,124,.1); }
+.status-building { background: rgba(124,255,124,.14); }
+.status-paused { border-style: dashed; }
+.status-finished { background: var(--line); color: #001100; }
+
+.progress-wrap {
+  margin: 12px 0;
+}
+
+.progress-label {
+  color: var(--muted);
+  font-size: .82rem;
+  margin-bottom: 5px;
+}
+
+.progress-bar {
+  height: 14px;
+  border: 1px solid var(--line);
+  background: #000;
+  overflow: hidden;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--line);
+  box-shadow: 0 0 14px rgba(124,255,124,.32);
+}
+
+.milestone-box {
+  border-top: 1px dotted var(--line);
+  border-bottom: 1px dotted var(--line);
+  padding: 10px 0;
+  margin: 12px 0;
+}
+
+.milestone-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+}
+
+.milestone-list li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.milestone-list li.done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.orchard-card details {
+  border: 1px solid var(--line);
+  padding: 8px;
+  margin: 10px 0;
+}
+
+.orchard-card summary {
+  cursor: pointer;
+}
+
+@media(max-width: 900px) {
+  .orchard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ===== V8.3 ALL-IN-ONE SIDEBAR PLANNER + PROJECT BOARDS ===== */
+
+.planner-card {
+  order: -1;
+}
+
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.sidebar-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.sidebar-day {
+  min-height: 32px;
+  padding: 3px;
+  font-size: .78rem;
+  position: relative;
+}
+
+.sidebar-day.today {
+  outline: 2px solid var(--line);
+  box-shadow: 0 0 10px rgba(124,255,124,.2);
+}
+
+.sidebar-day.has-due {
+  background: rgba(124,255,124,.14);
+}
+
+.sidebar-day em {
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  font-size: .65rem;
+  font-style: normal;
+  color: var(--muted);
+}
+
+.upcoming-block {
+  border-top: 1px dotted var(--line);
+  padding-top: 10px;
+}
+
+.upcoming-item {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.upcoming-item span {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.upcoming-item button {
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.project-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.project-board-card {
+  border: 1px solid var(--line);
+  min-height: 74px;
+  padding: 6px;
+  background: #000;
+  overflow: hidden;
+}
+
+.project-board-card img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+}
+
+.project-board-card p {
+  margin: 0;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.memory-viewer .project-board-grid {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.memory-viewer .project-board-card img {
+  height: 140px;
+}
+
+/* Keep Orchard focused now that planner lives in the sidebar */
+.orchard-calendar-panel {
+  display: none !important;
+}
+
+
+/* ===== V8.5 PROJECT IMAGE BOARDS + SFX CONTROLS ===== */
+
+.project-board-uploader {
+  border: 1px dashed var(--line);
+  padding: 8px;
+  margin: 8px 0 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.project-board-uploader input {
+  margin: 0;
+}
+
+.project-board-card.image-card {
+  position: relative;
+}
+
+.project-board-card .tiny-button,
+.tiny-button {
+  padding: 3px 6px;
+  font-size: .7rem;
+  margin-top: 5px;
+}
+
+.project-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.project-board-card {
+  border: 1px solid var(--line);
+  min-height: 82px;
+  padding: 6px;
+  background: #000;
+  overflow: hidden;
+}
+
+.project-board-card img {
+  width: 100%;
+  height: 95px;
+  object-fit: cover;
+  display: block;
+}
+
+.project-board-card p {
+  margin: 5px 0 0;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.memory-viewer .project-board-grid {
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+}
+
+.memory-viewer .project-board-card img {
+  height: 145px;
+}
+
+
+/* ===== V8.6 UNIVERSAL POPOUT CARDS ===== */
+
+.universal-card {
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.universal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(124,255,124,.16);
+  background: rgba(124,255,124,.055);
+}
+
+.universal-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: start;
+}
+
+.universal-card .button-row,
+.tree-card .button-row,
+.visited-item .button-row {
+  margin-top: 10px;
+}
+
+.memory-viewer {
+  width: min(720px, 92vw);
+}
+
+.memory-viewer-meta {
+  font-weight: bold;
+}
+
+.memory-viewer-text {
+  line-height: 1.45;
+}
+
+.memory-viewer-text p {
+  margin: 0 0 12px;
+}
