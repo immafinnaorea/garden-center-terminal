@@ -625,8 +625,10 @@ async function renderProjectBoard(item, project) {
   const savedImages = projectImagesByProject[item.id] || [];
 
   const savedCards = await Promise.all(savedImages.map(async img => {
-   const isPreviewImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(img.image_path);
-const isPdf = /\.pdf$/i.test(img.image_path);
+  const url = await getProjectImageUrl(img.image_path);
+
+  const isPreviewImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(img.image_path);
+  const isPdf = /\.pdf$/i.test(img.image_path);
 
 return `<div class="project-board-card image-card">
   ${url && isPreviewImage
