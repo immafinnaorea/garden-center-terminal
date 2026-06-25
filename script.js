@@ -730,6 +730,37 @@ function renderMilestones(project) {
 }
 
 
+function openProjectFileLightbox(url, title = "Reference board", type = "image") {
+  const lightbox = $("projectFileLightbox");
+  const body = $("projectFileLightboxBody");
+  const titleEl = $("projectFileLightboxTitle");
+  const captionEl = $("projectFileLightboxCaption");
+
+  if (!lightbox || !body) return;
+
+  const safeTitle = title || "Reference board";
+  titleEl.textContent = safeTitle;
+  captionEl.textContent = safeTitle;
+
+  if (type === "pdf") {
+    body.innerHTML = `<iframe class="project-file-lightbox-pdf" src="${esc(url)}#toolbar=1&navpanes=0"></iframe>`;
+  } else if (type === "image") {
+    body.innerHTML = `<img class="project-file-lightbox-image" src="${esc(url)}" alt="${esc(safeTitle)}">`;
+  } else {
+    body.innerHTML = `<div class="project-file-lightbox-generic"><p>Preview unavailable.</p><a href="${esc(url)}" target="_blank" rel="noopener">OPEN FILE</a></div>`;
+  }
+
+  lightbox.classList.remove("hidden");
+}
+
+function closeProjectFileLightbox() {
+  const lightbox = $("projectFileLightbox");
+  const body = $("projectFileLightboxBody");
+  if (!lightbox) return;
+  lightbox.classList.add("hidden");
+  if (body) body.innerHTML = "";
+}
+
 async function renderProjectBoard(item, project) {
   const savedImages = projectImagesByProject[item.id] || [];
 
@@ -739,26 +770,30 @@ async function renderProjectBoard(item, project) {
   const isPreviewImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(img.image_path);
   const isPdf = /\.pdf$/i.test(img.image_path);
 
-return `<div class="project-board-card image-card">
-  ${url && isPreviewImage
-    ? `<img src="${url}" alt="Project board image">`
-    : url && isPdf
-? `<a class="project-file-card pdf-preview-card" href="${url}" target="_blank">
-    <iframe src="${url}#page=1&zoom=45" loading="lazy"></iframe>
-    <span>📄 OPEN PDF</span>
-  </a>`      : url
-        ? `<a class="project-file-card" href="${url}" target="_blank">📎 OPEN FILE</a>`
-        : `<p class="muted">File unavailable</p>`
-  }
-  ${img.caption ? `<p>${esc(img.caption)}</p>` : ""}
-      <button class="tiny-button" onclick="deleteProjectImage('${img.id}')">REMOVE</button>
-    </div>`;
+const caption = img.caption || "";
+  const fileLabel = caption || (isPdf ? "PDF reference" : "Project board image");
+
+  return `<div class="project-board-card image-card">
+    ${url && isPreviewImage
+      ? `<img src="${url}" alt="Project board image" onclick='openProjectFileLightbox(${JSON.stringify(url)}, ${JSON.stringify(fileLabel)}, "image")'>`
+      : url && isPdf
+        ? `<button type="button" class="project-file-card pdf-preview-card" onclick='openProjectFileLightbox(${JSON.stringify(url)}, ${JSON.stringify(fileLabel)}, "pdf")'>
+            <iframe src="${url}#page=1&zoom=45" loading="lazy"></iframe>
+            <span>📄 OPEN PDF</span>
+          </button>`
+        : url
+          ? `<button type="button" class="project-file-card" onclick='openProjectFileLightbox(${JSON.stringify(url)}, ${JSON.stringify(fileLabel)}, "file")'>📎 OPEN FILE</button>`
+          : `<p class="muted">File unavailable</p>`
+    }
+    ${caption ? `<p>${esc(caption)}</p>` : ""}
+    <button class="tiny-button" onclick="deleteProjectImage('${img.id}')">REMOVE</button>
+  </div>`;
   }));
 
   const textCards = (project.board || []).map(line => {
     const isImage = /^https?:\/\/.*\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i.test(line);
     return `<div class="project-board-card">
-      ${isImage ? `<img src="${esc(line)}" alt="Project reference image">` : `<p>${esc(line)}</p>`}
+      ${isImage ? `<img src="${esc(line)}" alt="Project reference image" onclick='openProjectFileLightbox(${JSON.stringify(line)}, "Reference image", "image")'>` : `<p>${esc(line)}</p>`}
     </div>`;
   });
 
@@ -1177,6 +1212,7 @@ if (savedTheme) {
 
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
+    closeProjectFileLightbox();
     closeMemoryViewer();
   }
 });
