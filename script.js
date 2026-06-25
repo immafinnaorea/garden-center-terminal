@@ -226,59 +226,74 @@ async function uploadProjectImage(projectId) {
   const fileInput = $(`projectImageFile_${projectId}`);
   const captionInput = $(`projectImageCaption_${projectId}`);
 
-  if (!fileInput || !fileInput.files[0]) {
-    alert("Choose an image first.");
+  if (!currentUser) {
+    alert("Please login first.");
+    return;
+  }
+
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+    alert("Choose an image or PDF first.");
     return;
   }
 
   const file = fileInput.files[0];
   const caption = captionInput ? captionInput.value.trim() : "";
-  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const allowedTypes = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/heic", "image/heif", "application/pdf"];
+  const fileName = file.name || "project-file";
+  const fileExt = fileName.split(".").pop().toLowerCase();
+  const allowedExts = ["png", "jpg", "jpeg", "gif", "webp", "heic", "heif", "pdf"];
+
+  if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
+    alert("Please upload an image or PDF for the reference board.");
+    return;
+  }
+
+  const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const filePath = `${currentUser.id}/${projectId}/${Date.now()}_${cleanName}`;
+
+  setStatus("📎 uploading project board file...");
 
   const { error: uploadError } = await supabaseClient.storage
     .from("project-photos")
     .upload(filePath, file, {
       cacheControl: "3600",
-      upsert: false
+      upsert: false,
+      contentType: file.type || undefined
     });
 
   if (uploadError) {
     alert("Project image upload error: " + uploadError.message);
+    setStatus("⚠️ upload failed");
     return;
   }
-  
-const { data: newImage, error: insertError } = await supabaseClient
-  .from("project_images")
-  .insert({
-    project_id: projectId,
-    user_id: currentUser.id,
-    image_path: filePath,
-    caption
-  })
-  .select()
-  .single();
 
-if (insertError) {
-  alert("Project image save error: " + insertError.message);
-  return;
-}
+  const { data: newImage, error: insertError } = await supabaseClient
+    .from("project_images")
+    .insert({
+      project_id: projectId,
+      user_id: currentUser.id,
+      image_path: filePath,
+      caption
+    })
+    .select()
+    .single();
 
+  if (insertError) {
+    alert("Project image save error: " + insertError.message);
+    setStatus("⚠️ upload saved to storage, but not the board");
+    return;
+  }
 
-
-projectImagesByProject[projectId].unshift(newImage);
-if (!projectImagesByProject[projectId]) {
-  projectImagesByProject[projectId] = [];
-}
-
-projectImagesByProject[projectId].unshift(newImage);
+  if (!projectImagesByProject[projectId]) {
+    projectImagesByProject[projectId] = [];
+  }
+  projectImagesByProject[projectId].unshift(newImage);
 
   fileInput.value = "";
   if (captionInput) captionInput.value = "";
 
-await loadProjectImages();
-await renderAll();
-setStatus("📎 project board file added");
+  await renderAll();
+  setStatus("📎 project board file added");
 }
 
 async function deleteProjectImage(imageId) {
@@ -305,6 +320,7 @@ async function loadCloudItems() {
     return;
   }
   allItems = data || [];
+  await loadProjectImages();
   await renderAll();
 }
 
@@ -377,6 +393,86 @@ function itemHTML(item) {
 function renderSection(section, target, empty) {
   const items = allItems.filter(i => i.section === section);
   $(target).innerHTML = items.length ? items.map(itemHTML).join("") : `<p class="muted">${empty}</p>`;
+}
+
+
+function visitedItemHTML(item) {
+  const label = item.title || item.mood || item.section.toUpperCase();
+  const project = item.section === "orchard" ? parseProjectBody(item.body) : null;
+
+  return `<div class="item universal-card" onclick="openMemoryViewer('${item.id}', 'visited')">
+    <div class="universal-card-header">
+      <strong>${esc(label)}</strong>
+      <span class="shared-badge">PUBLIC</span>
+    </div>
+    <p class="muted">${new Date(item.created_at).toLocaleString()}</p>
+    ${item.section === "orchard" && project
+      ? `<p class="muted">ORCHARD // ${esc(project.status || "Seeded")}</p>${project.overview ? `<p>${esc(project.overview).replaceAll("\n", "<br>")}</p>` : ""}`
+      : ""}
+    ${item.prompt ? `<p><em>${esc(item.prompt)}</em></p>` : ""}
+    ${item.body && item.section !== "orchard" ? `<p>${esc(item.body).replaceAll("\n","<br>")}</p>` : ""}
+    ${item.song ? `<p class="muted">SONG: ${esc(item.song)}</p>` : ""}
+    ${item.people ? `<p class="muted">PEOPLE: ${esc(item.people)}</p>` : ""}
+    <div class="button-row" onclick="event.stopPropagation()">
+      <button onclick="openMemoryViewer('${item.id}', 'visited')">OPEN</button>
+    </div>
+  </div>`;
+}
+
+function renderVisitedGarden(filter = "all") {
+  const target = $("visitedGardenItems");
+  if (!target) return;
+
+  document.querySelectorAll(".garden-filter").forEach(btn => {
+    btn.classList.toggle("active-filter", btn.dataset.filter === filter);
+  });
+
+  if (!currentVisitedFriend) {
+    target.innerHTML = "<p class='muted'>Select a friend to walk through their public garden.</p>";
+    return;
+  }
+
+  const items = filter === "all"
+    ? currentVisitedItems
+    : currentVisitedItems.filter(item => item.section === filter);
+
+  target.innerHTML = items.length
+    ? items.map(visitedItemHTML).join("")
+    : "<p class='muted'>Nothing public in this part of the garden yet.</p>";
+}
+
+async function visitGarden(profileId, username = "friend") {
+  if (!profileId) return;
+
+  currentVisitedFriend = { id: profileId, username };
+  currentVisitedItems = [];
+
+  openSection("community");
+  if ($("visitedGardenTitle")) $("visitedGardenTitle").textContent = `IN @${username}'S GARDEN`;
+  if ($("visitedGardenSubtitle")) $("visitedGardenSubtitle").textContent = "Loading public garden...";
+  if ($("visitedGardenItems")) $("visitedGardenItems").innerHTML = "<p class='muted'>Loading...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("garden_items")
+    .select("*")
+    .eq("user_id", profileId)
+    .eq("is_shared", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if ($("visitedGardenSubtitle")) $("visitedGardenSubtitle").textContent = "Could not load this garden.";
+    if ($("visitedGardenItems")) $("visitedGardenItems").innerHTML = `<p class='muted'>Visit error: ${esc(error.message)}</p>`;
+    return;
+  }
+
+  currentVisitedItems = data || [];
+  if ($("visitedGardenSubtitle")) {
+    $("visitedGardenSubtitle").textContent = currentVisitedItems.length
+      ? `${currentVisitedItems.length} public item${currentVisitedItems.length === 1 ? "" : "s"} growing here.`
+      : "This gardener has not shared anything public yet.";
+  }
+
+  renderVisitedGarden("all");
 }
 
 function renderPublicMockFeed() {
@@ -1085,6 +1181,11 @@ document.addEventListener("keydown", e => {
   }
 });
 
+
+document.querySelectorAll(".garden-filter").forEach(btn => {
+  btn.addEventListener("click", () => renderVisitedGarden(btn.dataset.filter || "all"));
+});
+
 makeMemoryViewerDraggable();
 setupMooseSoundControls();
 newPrompt();
@@ -1179,8 +1280,10 @@ function startMooseCrunchLoop() {
 }
 
 document.addEventListener("keydown", e => {
-  if (e.key.toLowerCase() === "m") {
+  const key = (e.key || "").toLowerCase();
+  if (key === "m") {
     mooseCrunchEnabled = !mooseCrunchEnabled;
+    localStorage.setItem("moose_crunch_enabled", String(mooseCrunchEnabled));
   }
 });
 
